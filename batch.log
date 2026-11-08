@@ -6,3 +6,43 @@ Starting Batch Run: 3:17:41 PM  Nov 08, 2026
 Running as user : LAPTOP-MFMQJOT0\nicho
 Temp directory: C:\temp
 Project directory: C:\Users\nicho\OneDrive\Documents\Ansoft
+The project 'MIE1242_Phase1_Coldplate' has been edited and/or solved. Do you want to save the changes?
+-- Message Window --
+      *Global - Messages
+        [info] gRPC server started on port 55694 of local host. Only connections from the local host initiated by the same user are permitted. 
+        [info] The project 'MIE1242_Phase1_Coldplate' has been edited and/or solved. Do you want to save the changes?
+-- Message Window --
+Stopping Batch Run: 3:23:11 PM  Nov 08, 2026
+ 
+Ansys Electronics Desktop Student Version 2025.2.4, Build: 2025-11-06 17:01:32
+Location: C:\Program Files\ANSYS Inc\ANSYS Student\v252\AnsysEM\ansysedtsv.exe
+Non Graphical Mode: No Project??
+Starting Batch Run: 3:23:41 PM  Nov 08, 2026
+Running as user : LAPTOP-MFMQJOT0\nicho
+Temp directory: C:\temp
+Project directory: C:\Users\nicho\OneDrive\Documents\Ansoft
+The project 'MIE1242_Phase1_Coldplate' has been edited and/or solved. Do you want to save the changes?
+-- Message Window --
+      *Global - Messages
+        [info] gRPC server started on port 55578 of local host. Only connections from the local host initiated by the same user are permitted. 
+        [info] The project 'MIE1242_Phase1_Coldplate' has been edited and/or solved. Do you want to save the changes?
+-- Message Window --
+Stopping Batch Run: 3:26:33 PM  Nov 08, 2026
+ 
+Ansys Electronics Desktop Student Version 2025.2.4, Build: 2025-11-06 17:01:32
+Location: C:\Program Files\ANSYS Inc\ANSYS Student\v252\AnsysEM\ansysedtsv.exe
+Non Graphical Mode: No Project??
+Starting Batch Run: 3:41:24 PM  Nov 08, 2026
+Running as user : LAPTOP-MFMQJOT0\nicho
+Temp directory: C:\temp
+Project directory: C:\Users\nicho\OneDrive\Documents\Ansoft
+The project 'MIE1242_Phase1_Coldplate' has been edited and/or solved. Do you want to save the changes?
+-- Message Window --
+      *Global - Messages
+        [info] gRPC server started on port 62088 of local host. Only connections from the local host initiated by the same user are permitted. 
+        [info] The project 'MIE1242_Phase1_Coldplate' has been edited and/or solved. Do you want to save the changes?
+      MIE1242_Phase1_Coldplate (C:/Temp/MIE1242_FinalProject_Phase1/)
+        Phase1_Chip_Coldplate (SteadyState)
+          [info] Normal completion of simulation on server: Local Machine. (03:42:51 PM  Nov 08, 2026)
+-- Message Window --
+Stopping Batch Run: 3:54:11 PM  Nov 08, 2026
