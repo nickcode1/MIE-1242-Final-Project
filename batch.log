@@ -190,3 +190,25 @@ Project directory: C:\Users\nicho\OneDrive\Documents\Ansoft
           [error] Script macro error: Command is read only. (05:42:08 PM  Nov 08, 2026)
 -- Message Window --
 Stopping Batch Run: 5:44:36 PM  Nov 08, 2026
+ 
+Ansys Electronics Desktop Student Version 2025.2.4, Build: 2025-11-06 17:01:32
+Location: C:\Program Files\ANSYS Inc\ANSYS Student\v252\AnsysEM\ansysedtsv.exe
+Non Graphical Mode: No Project??
+Starting Batch Run: 5:45:56 PM  Nov 08, 2026
+Running as user : LAPTOP-MFMQJOT0\nicho
+Temp directory: C:\temp
+Project directory: C:\Users\nicho\OneDrive\Documents\Ansoft
+-- Message Window --
+      *Global - Messages
+        [info] gRPC server started on port 49916 of local host. Only connections from the local host initiated by the same user are permitted. 
+      MIE1242_Phase1_Coldplate (C:/Temp/MIE1242_FinalProject_Phase1/)
+        Phase1_tim_thickness_0p025 (SteadyState)
+          [error] Script macro error: Command is read only. (05:46:16 PM  Nov 08, 2026)
+          [error] Script macro error: Command is read only. (05:46:16 PM  Nov 08, 2026)
+          [error] Script macro error: Command is read only. (05:46:16 PM  Nov 08, 2026)
+          [info] Validation warning: Skipped entity checks. (05:46:19 PM  Nov 08, 2026)
+          [warning] Warning - Boundary 'Q_ring' and Boundary 'Q_center' overlap.   (05:46:19 PM  Nov 08, 2026)
+          [warning] Com Engine non-responsive since 17:47:19, November 08, 2026.   Can be due to CPU intensive processing or network problems.   If persisting for long, manually kill the com engine process and restart analysis. Retrying.....  (05:48:19 PM  Nov 08, 2026)
+          [error] Machine Local Machine: Engine terminated unexpectedly, or machine reported error or was inaccessible. (05:49:17 PM  Nov 08, 2026)
+-- Message Window --
+Stopping Batch Run: 6:15:05 PM  Nov 08, 2026

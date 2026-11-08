@@ -28,7 +28,7 @@ STUDENT = True
 KEEP_AEDT_OPEN = True
 SOLVE_ON_BUILD = True         # Set True to solve and export CSV automatically
 
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__)) if "__file__" in locals() else os.getcwd()
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__)) if "__file__" in globals() else os.getcwd()
 WORK_DIR = r"C:\Temp\MIE1242_FinalProject_Phase1"
 PROJECT_NAME = "MIE1242_Phase1_Coldplate"
 DESIGN_NAME = "Phase1"
@@ -126,6 +126,13 @@ os.makedirs(WORK_DIR, exist_ok=True)
 project_path = os.path.join(WORK_DIR, PROJECT_NAME + ".aedt")
 results_file = os.path.join(SCRIPT_DIR, f"results_{TARGET_SWEEP}.csv")
 
+CSV_HEADER = [
+    "sweep_mode", "sweep_val", "tim_mm", "fin_pitch_mm",
+    "fin_thick_mm", "fin_height_mm", "T_die_center_C",
+    "T_die_ring_C", "T_coldplate_C", "p_in_Pa", "p_out_Pa", "dP_Pa",
+    "v_in_m_s", "v_out_m_s", "v_max_m_s",
+]
+
 
 # ----------------------------------------------------------------------------
 # HELPER FUNCTIONS
@@ -156,19 +163,34 @@ def open_icepak(design_name, new_desktop=True):
     )
 
 
-def apply_region_settings(region, props):
+def apply_region_settings(region, props, label="region"):
+    """Applies mesh settings, skipping (and reporting) keys this AEDT version doesn't expose."""
     try:
         region.manual_settings = True
     except Exception:
         pass
+
+    try:
+        available = set(region.settings.keys())
+    except Exception:
+        available = None
+
+    skipped = []
     for key, val in props.items():
+        if available is not None and key not in available:
+            skipped.append(key)
+            continue
         try:
             region.settings[key] = val
         except Exception:
-            pass
+            skipped.append(key)
+    if skipped:
+        print(f"  Mesh note ({label}): skipped unsupported settings {skipped}")
+
     try:
         return bool(region.update())
-    except Exception:
+    except Exception as err:
+        print(f"  Mesh note ({label}): region.update() failed: {err}")
         return False
 
 
@@ -224,7 +246,7 @@ def apply_mesh(ipk, t_tim_mm, mesh_cfg, stack_objs):
         "MinElementsInGap": min_elems,
         "EnableMLM": False,
     }
-    apply_region_settings(ipk.mesh.global_mesh_region, glob_props)
+    apply_region_settings(ipk.mesh.global_mesh_region, glob_props, label="global")
 
     try:
         reg = ipk.mesh.assign_mesh_region(stack_objs, name="refine_stack")
@@ -234,7 +256,7 @@ def apply_mesh(ipk, t_tim_mm, mesh_cfg, stack_objs):
             "MaxElementSizeY": xy,
             "MaxElementSizeZ": z,
         })
-        apply_region_settings(reg, stack_props)
+        apply_region_settings(reg, stack_props, label="refine_stack")
     except Exception as err:
         print(f"Warning - local mesh region note: {err}")
 
@@ -368,7 +390,10 @@ def build_phase1_model(ipk, t_tim_mm, fin_pitch_mm, fin_thick_mm, fin_height_mm)
         inlet_face = ipk.modeler["Coolant_Domain"].bottom_face_y
         outlet_face = ipk.modeler["Coolant_Domain"].top_face_y
 
-        # Fix 1: Pass [face.id] as the first positional argument (`assignment`), not `geometry=`
+        # Named face lists used by read_results() for pressure / velocity readout
+        ipk.modeler.create_face_list([inlet_face.id], name="FaceList_Inlet")
+        ipk.modeler.create_face_list([outlet_face.id], name="FaceList_Outlet")
+
         ipk.assign_mass_flow_free_opening(
             [inlet_face.id],
             boundary_name="Coldplate_Inlet",
@@ -382,7 +407,6 @@ def build_phase1_model(ipk, t_tim_mm, fin_pitch_mm, fin_thick_mm, fin_height_mm)
             temperature=f"{T_COOLANT_IN_C}cel",
         )
 
-        # Fix 2: Pass ambient_temperature with explicit temperature units ("25.0cel")
         ipk.edit_design_settings(ambient_temperature=f"{T_AMBIENT_C}cel")
         ipk.modeler.edit_region_dimensions([0, 0, 0, 0, 0, 0])
 
@@ -402,8 +426,8 @@ def build_phase1_model(ipk, t_tim_mm, fin_pitch_mm, fin_thick_mm, fin_height_mm)
     die_area = 25.0 * 25.0
     ctr_area = 10.0 * 10.0
     if OVERLAPPING_POWER_MAP:
-        p_ctr = 100.0 + 250.0 * (ctr_area / die_area)
-        p_ring = 250.0 * ((die_area - ctr_area) / die_area)
+        p_ctr = 100.0 + 250.0 * (ctr_area / die_area)        # 140 W
+        p_ring = 250.0 * ((die_area - ctr_area) / die_area)  # 210 W
     else:
         p_ctr = 100.0
         p_ring = 250.0
@@ -439,71 +463,53 @@ def build_phase1_model(ipk, t_tim_mm, fin_pitch_mm, fin_thick_mm, fin_height_mm)
     return local_z_mm
 
 
+# ----------------------------------------------------------------------------
+# POST-PROCESSING
+# ----------------------------------------------------------------------------
+def _field(ipk, quantity, obj, func="Maximum", obj_type="volume"):
+    """PyAEDT 1.x signature: quantity is the first positional argument."""
+    return float(ipk.post.get_scalar_field_value(
+        quantity, scalar_function=func, object_name=obj, object_type=obj_type
+    ))
+
+
 def read_results(ipk):
-    """Extracts peak temperatures, inlet/outlet pressures, pressure drop, and flow velocities."""
+    """Returns a dict of results, or None if the temperature readout fails."""
     try:
-        # Correct PyAEDT 1.9 keyword signature for scalar field evaluation
-        t_ring = float(ipk.post.get_scalar_field_value(
-            quantity_name="Temperature",
-            scalar_function="Maximum",
-            specified_domain="object",
-            geometry_list=["Die_ring"]
-        ))
-        t_center = float(ipk.post.get_scalar_field_value(
-            quantity_name="Temperature",
-            scalar_function="Maximum",
-            specified_domain="object",
-            geometry_list=["Die_center"]
-        ))
-        t_cp = float(ipk.post.get_scalar_field_value(
-            quantity_name="Temperature",
-            scalar_function="Maximum",
-            specified_domain="object",
-            geometry_list=["Coldplate_Body"]
-        ))
-
-        p_in = p_out = dp_pa = v_in = v_out = v_max = 0.0
-
-        if COLDPLATE_MODE == "finned_fluid":
-            try:
-                p_in = float(ipk.post.get_scalar_field_value(
-                    quantity_name="Pressure", scalar_function="Average",
-                    specified_domain="facelist", geometry_list=["FaceList_Inlet"]
-                ))
-                p_out = float(ipk.post.get_scalar_field_value(
-                    quantity_name="Pressure", scalar_function="Average",
-                    specified_domain="facelist", geometry_list=["FaceList_Outlet"]
-                ))
-                dp_pa = p_in - p_out
-
-                v_in = float(ipk.post.get_scalar_field_value(
-                    quantity_name="Velocity", scalar_function="Average",
-                    specified_domain="facelist", geometry_list=["FaceList_Inlet"]
-                ))
-                v_out = float(ipk.post.get_scalar_field_value(
-                    quantity_name="Velocity", scalar_function="Average",
-                    specified_domain="facelist", geometry_list=["FaceList_Outlet"]
-                ))
-                v_max = float(ipk.post.get_scalar_field_value(
-                    quantity_name="Velocity", scalar_function="Maximum",
-                    specified_domain="object", geometry_list=["Coolant_Domain"]
-                ))
-            except Exception as ex:
-                print(f"Fluid metric extraction warning: {ex}")
-
-        try:
-            ipk.odesign.GetModule("FieldsReporter").CalcStack("clear")
-        except Exception:
-            pass
-
-        return {
-            "t_ring": t_ring, "t_center": t_center, "t_cp": t_cp,
-            "p_in": p_in, "p_out": p_out, "dp_pa": dp_pa,
-            "v_in": v_in, "v_out": v_out, "v_max": v_max
+        res = {
+            "t_ring": _field(ipk, "Temperature", "Die_ring"),
+            "t_center": _field(ipk, "Temperature", "Die_center"),
+            "t_cp": _field(ipk, "Temperature", "Coldplate_Body"),
+            "p_in": None, "p_out": None, "dp_pa": None,
+            "v_in": None, "v_out": None, "v_max": None,
         }
     except Exception as err:
-        print(f"(Post-processing readout error: {err})")
+        print(f"(Temperature readout error: {err})")
         return None
+
+    if COLDPLATE_MODE == "finned_fluid":
+        try:
+            res["p_in"] = _field(ipk, "Pressure", "FaceList_Inlet", "Mean", "surface")
+            res["p_out"] = _field(ipk, "Pressure", "FaceList_Outlet", "Mean", "surface")
+            res["dp_pa"] = res["p_in"] - res["p_out"]
+        except Exception as ex:
+            print(f"Pressure readout warning: {ex}")
+        try:
+            res["v_in"] = _field(ipk, "Speed", "FaceList_Inlet", "Mean", "surface")
+            res["v_out"] = _field(ipk, "Speed", "FaceList_Outlet", "Mean", "surface")
+            res["v_max"] = _field(ipk, "Speed", "Coolant_Domain")
+        except Exception as ex:
+            print(f"Velocity readout warning: {ex}")
+
+    try:
+        ipk.odesign.GetModule("FieldsReporter").CalcStack("clear")
+    except Exception:
+        pass
+    return res
+
+
+def _fmt(val, nd=3):
+    return "" if val is None else f"{val:.{nd}f}"
 
 
 # ----------------------------------------------------------------------------
@@ -538,12 +544,7 @@ if __name__ == "__main__":
 
     if SOLVE_ON_BUILD:
         with open(results_file, "w", newline="") as fh:
-            w = csv.writer(fh)
-            w.writerow([
-                "sweep_mode", "sweep_val", "tim_mm", "fin_pitch_mm",
-                "fin_thick_mm", "fin_height_mm", "T_die_center_C",
-                "T_die_ring_C", "T_coldplate_C", "dP_Pa"
-            ])
+            csv.writer(fh).writerow(CSV_HEADER)
 
     ipk = None
     for idx, run in enumerate(runs):
@@ -562,22 +563,30 @@ if __name__ == "__main__":
             print(f"Solving {design_case_name}...")
             ipk.analyze_setup("Setup1")
             ipk.save_project()
-            t_ring, t_center, t_cp, dp_pa = read_results(ipk)
+            res = read_results(ipk)
 
-            if t_center is not None:
-                print(
-                    f"  Results -> Die Center T: {t_center:.2f} C | "
-                    f"Coldplate T: {t_cp:.2f} C | dP: {dp_pa:.1f} Pa"
-                )
-                with open(results_file, "a", newline="") as fh:
-                    w = csv.writer(fh)
-                    w.writerow([
-                        TARGET_SWEEP, run["val"], run["t_tim"], run["pitch"],
-                        run["t_thick"], run["h_fin"],
-                        f"{t_center:.3f}", f"{t_ring:.3f}", f"{t_cp:.3f}", f"{dp_pa:.2f}"
-                    ])
+            if res is None:
+                print(f"  No results read for {design_case_name}; skipping CSV row.")
+                continue
+
+            print(
+                f"  Results -> Die Center T: {res['t_center']:.2f} C | "
+                f"Die Ring T: {res['t_ring']:.2f} C | "
+                f"Coldplate T: {res['t_cp']:.2f} C | "
+                f"dP: {_fmt(res['dp_pa'], 1) or 'n/a'} Pa"
+            )
+            with open(results_file, "a", newline="") as fh:
+                csv.writer(fh).writerow([
+                    TARGET_SWEEP, run["val"], run["t_tim"], run["pitch"],
+                    run["t_thick"], run["h_fin"],
+                    _fmt(res["t_center"]), _fmt(res["t_ring"]), _fmt(res["t_cp"]),
+                    _fmt(res["p_in"], 2), _fmt(res["p_out"], 2), _fmt(res["dp_pa"], 2),
+                    _fmt(res["v_in"], 4), _fmt(res["v_out"], 4), _fmt(res["v_max"], 4),
+                ])
 
     print(f"\nAll configurations built and saved successfully to: {project_path}")
+    if SOLVE_ON_BUILD:
+        print(f"Results written to: {results_file}")
 
     if ipk and not KEEP_AEDT_OPEN:
         ipk.release_desktop(close_projects=True, close_desktop=True)
