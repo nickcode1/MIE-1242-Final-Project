@@ -1,12 +1,16 @@
 """
-MIE1242 Final Project - Phase 1: Chip Package & Coldplate Model 
-Built for Ansys Icepak 2025 R2 Student Version using PyAEDT.
+MIE1242 Final Project - Phase 1: Chip Package & Coldplate Model
+Built for Ansys Icepak 2025 R2 Student Version using PyAEDT 1.9+.
 
-Features Python-level sweep functionality for TIM and Fin geometries.
+Supports separate parametric sweeps for:
+  - "single" (baseline build)
+  - "tim_thickness"
+  - "fin_pitch"
+  - "fin_thickness"
+  - "fin_height"
 """
 import csv
 import os
-import re
 import shutil
 import subprocess
 import time
@@ -19,10 +23,10 @@ except ImportError:
 # ----------------------------------------------------------------------------
 # 1. AEDT & PROJECT SETTINGS
 # ----------------------------------------------------------------------------
-AEDT_VERSION = "2025.2"        
-STUDENT = True                 
+AEDT_VERSION = "2025.2"
+STUDENT = True
 KEEP_AEDT_OPEN = True
-SOLVE_ON_BUILD = False         
+SOLVE_ON_BUILD = False         # Set True to solve and export CSV automatically
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__)) if "__file__" in locals() else os.getcwd()
 WORK_DIR = r"C:\Temp\MIE1242_FinalProject_Phase1"
@@ -32,56 +36,56 @@ DESIGN_NAME = "Phase1"
 # ----------------------------------------------------------------------------
 # 2. SWEEP CONFIGURATION
 # ----------------------------------------------------------------------------
-# Select the parameter to sweep. 
 # Options: "single", "tim_thickness", "fin_pitch", "fin_thickness", "fin_height"
 TARGET_SWEEP = "fin_pitch"
 
-# Define the test arrays for each sweep mode
 SWEEP_RANGES = {
     "tim_thickness": [0.025, 0.05, 0.10, 0.20],
     "fin_pitch": [1.5, 2.0, 2.5, 3.0],
     "fin_thickness": [0.5, 0.8, 1.0, 1.2],
-    "fin_height": [3.0, 4.0, 5.0, 6.0]
+    "fin_height": [3.0, 4.0, 5.0, 6.0],
 }
 
 # ----------------------------------------------------------------------------
 # 3. BASELINE PARAMETERS (Used when not actively swept)
 # ----------------------------------------------------------------------------
-COLDPLATE_MODE = "finned_fluid"
+COLDPLATE_MODE = "finned_fluid"   # "finned_fluid" or "htc_plate"
 OVERLAPPING_POWER_MAP = True
 
-# Package Thicknesses (mm)
+# Slide 16: Layer Thicknesses (mm)
 T_PCB_MM = 1.2
 T_BGA_MM = 0.8
 T_SUBSTRATE_MM = 0.8
 T_BUMPS_MM = 0.1
 T_DIE_MM = 0.7
 
+# Slide 14, 16, 19: Stiffener Ring
 INCLUDE_STIFFENER_RING = True
 STIFFENER_WALL_W_MM = 3.0
 
 # Baseline TIM & Coldplate (mm)
-BASE_T_TIM = 0.05                
-K_TIM = 5.0                    
+BASE_T_TIM = 0.05
+K_TIM = 5.0
 
-COLDPLATE_MATERIAL = "Copper"  
-CP_XY_MM = 45.0                
-CP_BASE_THICK_MM = 1.5         
-CP_TOP_CAP_MM = 1.5            
+COLDPLATE_MATERIAL = "Copper"
+CP_XY_MM = 45.0
+CP_BASE_THICK_MM = 1.5
+CP_TOP_CAP_MM = 1.5
 
-BASE_FIN_PITCH = 2.0             
-BASE_FIN_THICK = 0.8         
-BASE_FIN_HEIGHT = 4.0            
-ACTIVE_FIN_SPAN_X_MM = 27.0    
-FIN_LENGTH_Y_MM = 27.0         
+BASE_FIN_PITCH = 2.0
+BASE_FIN_THICK = 0.8
+BASE_FIN_HEIGHT = 4.0
+ACTIVE_FIN_SPAN_X_MM = 27.0
+FIN_LENGTH_Y_MM = 27.0
 
-# Flow & Thermal 
-COOLANT_FLUID = "water"        
-FLOW_RATE_LPM = 1.0            
-T_COOLANT_IN_C = 25.0          
-T_AMBIENT_C = 25.0             
+# Coolant & Flow Settings
+COOLANT_FLUID = "water"
+FLOW_RATE_LPM = 1.0
+T_COOLANT_IN_C = 25.0
+T_AMBIENT_C = 25.0
 H_TOP_EQUIV = "10000w_per_m2kel"
 
+# Slide 15: Material Conductivities (W/mK)
 K_SILICON = 148.0
 K_COPPER = 400.0
 K_ALUMINUM = 205.0
@@ -100,16 +104,28 @@ MESH_CONFIG = {
 MIN_GAP_MM = 0.01
 
 COLORS = {
-    "PCB": (84, 130, 53), "BGA_balls": (166, 166, 166), "Substrate": (112, 173, 71),
-    "Bumps": (166, 166, 166), "Die_ring": (30, 30, 30), "Die_center": (90, 30, 30),
-    "Stiffener": (140, 90, 20), "TIM": (191, 144, 0), "Coldplate_Body": (0, 112, 192),
+    "PCB": (84, 130, 53),
+    "BGA_balls": (166, 166, 166),
+    "Substrate": (112, 173, 71),
+    "Bumps": (166, 166, 166),
+    "Die_ring": (30, 30, 30),
+    "Die_center": (90, 30, 30),
+    "Stiffener": (140, 90, 20),
+    "TIM": (191, 144, 0),
+    "Coldplate_Body": (0, 112, 192),
     "Coolant_Domain": (0, 176, 240),
 }
-TRANSPARENCY = {"Coldplate_Body": 0.55, "Coolant_Domain": 0.65, "Stiffener": 0.25, "Substrate": 0.15}
+TRANSPARENCY = {
+    "Coldplate_Body": 0.55,
+    "Coolant_Domain": 0.65,
+    "Stiffener": 0.25,
+    "Substrate": 0.15,
+}
 
 os.makedirs(WORK_DIR, exist_ok=True)
 project_path = os.path.join(WORK_DIR, PROJECT_NAME + ".aedt")
 results_file = os.path.join(SCRIPT_DIR, f"results_{TARGET_SWEEP}.csv")
+
 
 # ----------------------------------------------------------------------------
 # HELPER FUNCTIONS
@@ -117,34 +133,56 @@ results_file = os.path.join(SCRIPT_DIR, f"results_{TARGET_SWEEP}.csv")
 def cleanup_processes():
     print("Cleaning up any background Ansys processes...")
     for proc in ("ansysedt.exe", "icm.exe", "fluent.exe"):
-        subprocess.run(["taskkill", "/F", "/IM", proc, "/T"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        subprocess.run(
+            ["taskkill", "/F", "/IM", proc, "/T"],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
     time.sleep(2)
     shutil.rmtree(WORK_DIR, ignore_errors=True)
     os.makedirs(WORK_DIR, exist_ok=True)
 
+
 def open_icepak(design_name, new_desktop=True):
     return Icepak(
-        project=project_path, design=design_name, solution_type="SteadyState",
-        version=AEDT_VERSION, student_version=STUDENT, non_graphical=False, new_desktop=new_desktop
+        project=project_path,
+        design=design_name,
+        solution_type="SteadyState",
+        version=AEDT_VERSION,
+        student_version=STUDENT,
+        non_graphical=False,
+        new_desktop=new_desktop,
+        close_on_exit=False,
     )
 
+
 def apply_region_settings(region, props):
-    try: region.manual_settings = True
-    except Exception: pass
+    try:
+        region.manual_settings = True
+    except Exception:
+        pass
     for key, val in props.items():
-        try: region.settings[key] = val
-        except Exception: pass
-    try: return bool(region.update())
-    except Exception: return False
+        try:
+            region.settings[key] = val
+        except Exception:
+            pass
+    try:
+        return bool(region.update())
+    except Exception:
+        return False
+
 
 def create_materials(ipk, k_tim):
     def iso_material(name, k, rho=None, cp=None, mu=None):
         if name.lower() not in ipk.materials.material_keys:
             mat = ipk.materials.add_material(name)
             mat.thermal_conductivity.value = k
-            if rho is not None: mat.mass_density.value = rho
-            if cp is not None: mat.specific_heat.value = cp
-            if mu is not None: mat.viscosity.value = mu
+            if rho is not None:
+                mat.mass_density.value = rho
+            if cp is not None:
+                mat.specific_heat.value = cp
+            if mu is not None:
+                mat.viscosity.value = mu
 
     def aniso_material(name, kxy, kz):
         if name.lower() not in ipk.materials.material_keys:
@@ -156,10 +194,11 @@ def create_materials(ipk, k_tim):
     iso_material("mat_Aluminum", K_ALUMINUM)
     iso_material("mat_TIM", k_tim)
     iso_material("mat_PG25", k=0.48, rho=1020.0, cp=3950.0, mu=0.0022)
-    aniso_material("mat_PCB", 50.0, 1.0)        
-    aniso_material("mat_Substrate", 10.0, 1.0)  
-    aniso_material("mat_Bumps", 1.0, 100.0)     
-    aniso_material("mat_BGA", 1.0, 100.0)       
+    aniso_material("mat_PCB", 50.0, 1.0)
+    aniso_material("mat_Substrate", 10.0, 1.0)
+    aniso_material("mat_Bumps", 1.0, 100.0)
+    aniso_material("mat_BGA", 1.0, 100.0)
+
 
 def apply_mesh(ipk, t_tim_mm, mesh_cfg, stack_objs):
     thinnest_mm = min(T_BUMPS_MM, t_tim_mm)
@@ -172,29 +211,43 @@ def apply_mesh(ipk, t_tim_mm, mesh_cfg, stack_objs):
     min_elems = str(mesh_cfg["min_elems_gap"])
 
     glob_props = {
-        "MeshMethod": "MesherHD", "UserSpecifiedSettings": True, "ComputeGap": False,
-        "UniformMeshParametersType": "XYZ Max Sizes", "MaxElementSizeX": size,
-        "MaxElementSizeY": size, "MaxElementSizeZ": max_z, "MinGapX": gap, "MinGapY": gap,
-        "MinGapZ": gap, "MinElementsInGap": min_elems, "EnableMLM": False,
+        "MeshMethod": "MesherHD",
+        "UserSpecifiedSettings": True,
+        "ComputeGap": False,
+        "UniformMeshParametersType": "XYZ Max Sizes",
+        "MaxElementSizeX": size,
+        "MaxElementSizeY": size,
+        "MaxElementSizeZ": max_z,
+        "MinGapX": gap,
+        "MinGapY": gap,
+        "MinGapZ": gap,
+        "MinElementsInGap": min_elems,
+        "EnableMLM": False,
     }
     apply_region_settings(ipk.mesh.global_mesh_region, glob_props)
 
     try:
         reg = ipk.mesh.assign_mesh_region(stack_objs, name="refine_stack")
         stack_props = glob_props.copy()
-        stack_props.update({"MaxElementSizeX": xy, "MaxElementSizeY": xy, "MaxElementSizeZ": z})
+        stack_props.update({
+            "MaxElementSizeX": xy,
+            "MaxElementSizeY": xy,
+            "MaxElementSizeZ": z,
+        })
         apply_region_settings(reg, stack_props)
     except Exception as err:
-        pass
+        print(f"Warning - local mesh region note: {err}")
+
     return local_z_val
 
+
 # ----------------------------------------------------------------------------
-# MODEL BUILDER (Now accepts swept variables)
+# MODEL BUILDER
 # ----------------------------------------------------------------------------
 def build_phase1_model(ipk, t_tim_mm, fin_pitch_mm, fin_thick_mm, fin_height_mm):
     ipk.modeler.model_units = "mm"
 
-    # Define AEDT variables. Passing equations natively fixes GUI parametric linkage.
+    # Parametric thickness & position variables inside AEDT
     ipk["t_pcb"] = f"{T_PCB_MM}mm"
     ipk["t_bga"] = f"{T_BGA_MM}mm"
     ipk["t_sub"] = f"{T_SUBSTRATE_MM}mm"
@@ -202,8 +255,8 @@ def build_phase1_model(ipk, t_tim_mm, fin_pitch_mm, fin_thick_mm, fin_height_mm)
     ipk["t_die"] = f"{T_DIE_MM}mm"
     ipk["t_tim"] = f"{t_tim_mm}mm"
     ipk["wall_w"] = f"{STIFFENER_WALL_W_MM}mm"
-    
-    # Establish sequential Ansys Z-coordinate string equations
+
+    # Parametric Z-elevations linked via AEDT expressions
     ipk["z_bga"] = "t_pcb"
     ipk["z_sub"] = "z_bga + t_bga"
     ipk["z_bumps"] = "z_sub + t_sub"
@@ -228,9 +281,18 @@ def build_phase1_model(ipk, t_tim_mm, fin_pitch_mm, fin_thick_mm, fin_height_mm)
 
     if INCLUDE_STIFFENER_RING:
         ipk["stiff_h"] = "t_bumps + t_die"
-        stiff = box("Stiffener", ["-22.5mm", "-22.5mm", "z_bumps"], ["45mm", "45mm", "stiff_h"], "mat_Copper")
-        stiff_cav = box("Stiffener_cavity", ["-22.5mm + wall_w", "-22.5mm + wall_w", "z_bumps"], 
-                        ["45mm - 2*wall_w", "45mm - 2*wall_w", "stiff_h"], "mat_Copper")
+        stiff = box(
+            "Stiffener",
+            ["-22.5mm", "-22.5mm", "z_bumps"],
+            ["45mm", "45mm", "stiff_h"],
+            "mat_Copper",
+        )
+        stiff_cav = box(
+            "Stiffener_cavity",
+            ["-22.5mm + wall_w", "-22.5mm + wall_w", "z_bumps"],
+            ["45mm - 2*wall_w", "45mm - 2*wall_w", "stiff_h"],
+            "mat_Copper",
+        )
         ipk.modeler.subtract([stiff.name], [stiff_cav.name], keep_originals=False)
 
     box("TIM", ["-12.5mm", "-12.5mm", "z_tim"], ["25mm", "25mm", "t_tim"], "mat_TIM")
@@ -246,62 +308,102 @@ def build_phase1_model(ipk, t_tim_mm, fin_pitch_mm, fin_thick_mm, fin_height_mm)
         ipk["cp_total_h"] = "cp_base_thick + fin_height + cp_top_cap"
         ipk["z_channel_bot"] = "z_cp_base + cp_base_thick"
 
-        box("Coldplate_Body", [f"{-CP_XY_MM/2.0}mm", f"{-CP_XY_MM/2.0}mm", "z_cp_base"],
-            [f"{CP_XY_MM}mm", f"{CP_XY_MM}mm", "cp_total_h"], cp_mat)
+        box(
+            "Coldplate_Body",
+            [f"{-CP_XY_MM/2.0}mm", f"{-CP_XY_MM/2.0}mm", "z_cp_base"],
+            [f"{CP_XY_MM}mm", f"{CP_XY_MM}mm", "cp_total_h"],
+            cp_mat,
+        )
 
         cav_w_x = ACTIVE_FIN_SPAN_X_MM
-        cav_l_y = CP_XY_MM  
-        
-        cavity_cutter = box("Cavity_Cutter", [f"{-cav_w_x/2.0}mm", f"{-cav_l_y/2.0}mm", "z_channel_bot"],
-                            [f"{cav_w_x}mm", f"{cav_l_y}mm", "fin_height"], cp_mat)
+        cav_l_y = CP_XY_MM
+
+        cavity_cutter = box(
+            "Cavity_Cutter",
+            [f"{-cav_w_x/2.0}mm", f"{-cav_l_y/2.0}mm", "z_channel_bot"],
+            [f"{cav_w_x}mm", f"{cav_l_y}mm", "fin_height"],
+            cp_mat,
+        )
         ipk.modeler.subtract(["Coldplate_Body"], [cavity_cutter.name], keep_originals=False)
 
         coolant_mat = "water" if COOLANT_FLUID.lower() == "water" else "mat_PG25"
-        box("Coolant_Domain", [f"{-cav_w_x/2.0}mm", f"{-cav_l_y/2.0}mm", "z_channel_bot"],
-            [f"{cav_w_x}mm", f"{cav_l_y}mm", "fin_height"], coolant_mat)
+        box(
+            "Coolant_Domain",
+            [f"{-cav_w_x/2.0}mm", f"{-cav_l_y/2.0}mm", "z_channel_bot"],
+            [f"{cav_w_x}mm", f"{cav_l_y}mm", "fin_height"],
+            coolant_mat,
+        )
 
-        # Dynamic fin array generation based on swept parameters
+        # Parametric Fin Array
+        ipk["fin_pitch"] = f"{fin_pitch_mm}mm"
+        ipk["fin_thick"] = f"{fin_thick_mm}mm"
+        ipk["fin_len_y"] = f"{FIN_LENGTH_Y_MM}mm"
+
         n_fins = int((cav_w_x - fin_thick_mm) // fin_pitch_mm) + 1
-        total_fin_span = (n_fins - 1) * fin_pitch_mm + fin_thick_mm
-        x_start = -0.5 * total_fin_span
+        ipk["x_fin_start"] = f"-0.5 * ({n_fins - 1} * fin_pitch + fin_thick)"
 
         fin_names = []
         for i in range(n_fins):
-            fx = x_start + i * fin_pitch_mm
             f_name = f"Fin_{i+1:02d}"
-            box(f_name, [f"{fx:.4f}mm", f"{-FIN_LENGTH_Y_MM/2.0}mm", "z_channel_bot"],
-                [f"{fin_thick_mm}mm", f"{FIN_LENGTH_Y_MM}mm", "fin_height"], cp_mat)
+            box(
+                f_name,
+                [f"x_fin_start + {i}*fin_pitch", "-0.5*fin_len_y", "z_channel_bot"],
+                ["fin_thick", "fin_len_y", "fin_height"],
+                cp_mat,
+            )
             fin_names.append(f_name)
 
         if fin_names:
             ipk.modeler.subtract(["Coolant_Domain"], fin_names, keep_originals=True)
             ipk.modeler.unite(["Coldplate_Body"] + fin_names)
 
-        print(f"Created Finned Coldplate: {n_fins} fins (Pitch={fin_pitch_mm}, Thick={fin_thick_mm}, Height={fin_height_mm})")
+        print(
+            f"Created Finned Coldplate: {n_fins} fins "
+            f"(Pitch={fin_pitch_mm} mm, Thick={fin_thick_mm} mm, Height={fin_height_mm} mm)"
+        )
 
         rho_fluid = 997.0 if COOLANT_FLUID.lower() == "water" else 1020.0
         mass_flow_kgs = (FLOW_RATE_LPM / 60000.0) * rho_fluid
 
-        try:
-            inlet_face = ipk.modeler["Coolant_Domain"].bottom_face_y
-            outlet_face = ipk.modeler["Coolant_Domain"].top_face_y
-            ipk.assign_mass_flow_free_opening(geometry=[inlet_face.id], boundary_name="Coldplate_Inlet",
-                                              mass_flow_rate=f"{mass_flow_kgs:.6f}kg_per_s", temperature=f"{T_COOLANT_IN_C}cel")
-            ipk.assign_pressure_free_opening(geometry=[outlet_face.id], boundary_name="Coldplate_Outlet",
-                                             pressure="0n_per_meter_sq", temperature=f"{T_COOLANT_IN_C}cel")
-        except Exception: pass
+        inlet_face = ipk.modeler["Coolant_Domain"].bottom_face_y
+        outlet_face = ipk.modeler["Coolant_Domain"].top_face_y
 
-        try:
-            ipk.edit_design_settings(ambient_temperature=T_AMBIENT_C)
-            ipk.modeler.edit_region_dimensions([0, 0, 0, 0, 0, 0])
-        except Exception: pass
+        # Fix 1: Pass [face.id] as the first positional argument (`assignment`), not `geometry=`
+        ipk.assign_mass_flow_free_opening(
+            [inlet_face.id],
+            boundary_name="Coldplate_Inlet",
+            mass_flow_rate=f"{mass_flow_kgs:.6f}kg_per_s",
+            temperature=f"{T_COOLANT_IN_C}cel",
+        )
+        ipk.assign_pressure_free_opening(
+            [outlet_face.id],
+            boundary_name="Coldplate_Outlet",
+            pressure="0n_per_meter_sq",
+            temperature=f"{T_COOLANT_IN_C}cel",
+        )
 
-    # --- C. POWER ---
+        # Fix 2: Pass ambient_temperature with explicit temperature units ("25.0cel")
+        ipk.edit_design_settings(ambient_temperature=f"{T_AMBIENT_C}cel")
+        ipk.modeler.edit_region_dimensions([0, 0, 0, 0, 0, 0])
+
+    else:
+        box("Coldplate_Body", ["-50mm", "-50mm", "z_cp_base"], ["100mm", "100mm", "2mm"], cp_mat)
+        ipk.edit_design_settings(ambient_temperature=f"{T_AMBIENT_C}cel")
+        top_face = ipk.modeler["Coldplate_Body"].top_face_z
+        ipk.assign_stationary_wall_with_htc(
+            [top_face.id],
+            name="Coldplate_top_conv",
+            htc=H_TOP_EQUIV,
+            ref_temperature=f"{T_AMBIENT_C}cel",
+        )
+        ipk.modeler.edit_region_dimensions([0, 0, 0, 0, 0, 0])
+
+    # --- C. POWER DISSIPATION ---
     die_area = 25.0 * 25.0
     ctr_area = 10.0 * 10.0
     if OVERLAPPING_POWER_MAP:
-        p_ctr = 100.0 + 250.0 * (ctr_area / die_area)             
-        p_ring = 250.0 * ((die_area - ctr_area) / die_area)       
+        p_ctr = 100.0 + 250.0 * (ctr_area / die_area)
+        p_ring = 250.0 * ((die_area - ctr_area) / die_area)
     else:
         p_ctr = 100.0
         p_ring = 250.0
@@ -309,40 +411,59 @@ def build_phase1_model(ipk, t_tim_mm, fin_pitch_mm, fin_thick_mm, fin_height_mm)
     ipk.assign_source("Die_ring", "Total Power", f"{p_ring}W", boundary_name="Q_ring")
     ipk.assign_source("Die_center", "Total Power", f"{p_ctr}W", boundary_name="Q_center")
 
-    # --- D. VISUALS & MESH ---
+    # --- D. VISUALS, SETUP & MESH ---
     for obj_name, rgb in COLORS.items():
         if obj_name in ipk.modeler.object_names:
-            try: ipk.modeler[obj_name].color = rgb
-            except Exception: pass
+            try:
+                ipk.modeler[obj_name].color = rgb
+            except Exception:
+                pass
     for obj_name, tr in TRANSPARENCY.items():
         if obj_name in ipk.modeler.object_names:
-            try: ipk.modeler[obj_name].transparency = tr
-            except Exception: pass
+            try:
+                ipk.modeler[obj_name].transparency = tr
+            except Exception:
+                pass
 
     setup = ipk.create_setup("Setup1")
-    try:
-        include_flow = (COLDPLATE_MODE == "finned_fluid")
-        setup.props["Include Flow"] = include_flow
-        setup.props["Include Gravity"] = False
-        setup.props["Max Iterations"] = 250 if include_flow else 200
-        setup.props["Convergence Criteria - Energy"] = 1e-7
-        if include_flow: setup.props["Flow Regime"] = "Laminar" if FLOW_RATE_LPM < 1.5 else "Turbulent"
-        setup.update()
-    except Exception: pass
+    include_flow = COLDPLATE_MODE == "finned_fluid"
+    setup.props["Include Flow"] = include_flow
+    setup.props["Include Gravity"] = False
+    setup.props["Max Iterations"] = 250 if include_flow else 200
+    setup.props["Convergence Criteria - Energy"] = 1e-7
+    if include_flow:
+        setup.props["Flow Regime"] = "Laminar" if FLOW_RATE_LPM < 1.5 else "Turbulent"
+    setup.update()
 
     local_z_mm = apply_mesh(ipk, t_tim_mm, MESH_CONFIG, stack_refine_objs)
     return local_z_mm
 
+
 def read_results(ipk):
+    """Extracts peak temperatures and coldplate pressure drop (Pa)."""
     try:
         t_ring = ipk.post.get_scalar_field_value("Temperature", "Maximum", "Die_ring", "volume")
         t_center = ipk.post.get_scalar_field_value("Temperature", "Maximum", "Die_center", "volume")
         t_cp = ipk.post.get_scalar_field_value("Temperature", "Maximum", "Coldplate_Body", "volume")
-        try: ipk.odesign.GetModule("FieldsReporter").CalcStack("clear")
-        except Exception: pass
-        return float(t_ring), float(t_center), float(t_cp)
-    except Exception:
-        return None, None, None
+
+        dp_pa = 0.0
+        if COLDPLATE_MODE == "finned_fluid":
+            try:
+                p_in = ipk.post.get_scalar_field_value("Pressure", "Average", "Coldplate_Inlet", "surface")
+                p_out = ipk.post.get_scalar_field_value("Pressure", "Average", "Coldplate_Outlet", "surface")
+                dp_pa = float(p_in) - float(p_out)
+            except Exception:
+                pass
+
+        try:
+            ipk.odesign.GetModule("FieldsReporter").CalcStack("clear")
+        except Exception:
+            pass
+        return float(t_ring), float(t_center), float(t_cp), dp_pa
+    except Exception as err:
+        print(f"(Post-processing readout skipped: {err})")
+        return None, None, None, None
+
 
 # ----------------------------------------------------------------------------
 # MAIN EXECUTION LOOP
@@ -353,10 +474,15 @@ if __name__ == "__main__":
     print(f"Building MIE1242 Phase 1 Model | Sweep Mode: {TARGET_SWEEP}")
     print(f"{'='*70}")
 
-    # Initialize execution matrix
     runs = []
     if TARGET_SWEEP == "single":
-        runs.append({"val": "base", "t_tim": BASE_T_TIM, "pitch": BASE_FIN_PITCH, "t_thick": BASE_FIN_THICK, "h_fin": BASE_FIN_HEIGHT})
+        runs.append({
+            "val": "base",
+            "t_tim": BASE_T_TIM,
+            "pitch": BASE_FIN_PITCH,
+            "t_thick": BASE_FIN_THICK,
+            "h_fin": BASE_FIN_HEIGHT,
+        })
     elif TARGET_SWEEP in SWEEP_RANGES:
         for val in SWEEP_RANGES[TARGET_SWEEP]:
             runs.append({
@@ -364,43 +490,51 @@ if __name__ == "__main__":
                 "t_tim": val if TARGET_SWEEP == "tim_thickness" else BASE_T_TIM,
                 "pitch": val if TARGET_SWEEP == "fin_pitch" else BASE_FIN_PITCH,
                 "t_thick": val if TARGET_SWEEP == "fin_thickness" else BASE_FIN_THICK,
-                "h_fin": val if TARGET_SWEEP == "fin_height" else BASE_FIN_HEIGHT
+                "h_fin": val if TARGET_SWEEP == "fin_height" else BASE_FIN_HEIGHT,
             })
     else:
         raise ValueError(f"Invalid TARGET_SWEEP: {TARGET_SWEEP}")
 
-    # Launch AEDT once to hold the session open
-    ipk = open_icepak(design_name="Initialization", new_desktop=True)
-
-    # Initialize CSV header
     if SOLVE_ON_BUILD:
         with open(results_file, "w", newline="") as fh:
             w = csv.writer(fh)
-            w.writerow(["sweep_mode", "sweep_val", "tim_mm", "fin_pitch_mm", "fin_thick_mm", 
-                        "fin_height_mm", "T_die_center_C", "T_die_ring_C", "T_coldplate_C"])
+            w.writerow([
+                "sweep_mode", "sweep_val", "tim_mm", "fin_pitch_mm",
+                "fin_thick_mm", "fin_height_mm", "T_die_center_C",
+                "T_die_ring_C", "T_coldplate_C", "dP_Pa"
+            ])
 
-    # Loop through configurations
-    for run in runs:
-        # Create a new design tab for each iteration so you can compare meshes side-by-side
+    ipk = None
+    for idx, run in enumerate(runs):
         design_case_name = f"{DESIGN_NAME}_{TARGET_SWEEP}_{run['val']}".replace(".", "p")
-        print(f"\n--- Generating Design: {design_case_name} ---")
-        ipk.insert_design(design_case_name)
+        print(f"\n--- Generating Design ({idx+1}/{len(runs)}): {design_case_name} ---")
 
-        # Build geometry
-        build_phase1_model(ipk, run['t_tim'], run['pitch'], run['t_thick'], run['h_fin'])
+        if idx == 0:
+            ipk = open_icepak(design_name=design_case_name, new_desktop=True)
+        else:
+            ipk.insert_design(design_case_name)
+
+        build_phase1_model(ipk, run["t_tim"], run["pitch"], run["t_thick"], run["h_fin"])
         ipk.save_project()
 
         if SOLVE_ON_BUILD:
             print(f"Solving {design_case_name}...")
             ipk.analyze_setup("Setup1")
-            t_ring, t_center, t_cp = read_results(ipk)
-            
+            ipk.save_project()
+            t_ring, t_center, t_cp, dp_pa = read_results(ipk)
+
             if t_center is not None:
-                print(f"  Results: Die Center T: {t_center:.2f} C | Coldplate T: {t_cp:.2f} C")
+                print(
+                    f"  Results -> Die Center T: {t_center:.2f} C | "
+                    f"Coldplate T: {t_cp:.2f} C | dP: {dp_pa:.1f} Pa"
+                )
                 with open(results_file, "a", newline="") as fh:
                     w = csv.writer(fh)
-                    w.writerow([TARGET_SWEEP, run['val'], run['t_tim'], run['pitch'], 
-                                run['t_thick'], run['h_fin'], f"{t_center:.3f}", f"{t_ring:.3f}", f"{t_cp:.3f}"])
+                    w.writerow([
+                        TARGET_SWEEP, run["val"], run["t_tim"], run["pitch"],
+                        run["t_thick"], run["h_fin"],
+                        f"{t_center:.3f}", f"{t_ring:.3f}", f"{t_cp:.3f}", f"{dp_pa:.2f}"
+                    ])
 
     print(f"\nAll configurations built and saved successfully to: {project_path}")
 
