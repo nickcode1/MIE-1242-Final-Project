@@ -69,3 +69,55 @@ Starting Batch Run: 4:42:38 PM  Nov 08, 2026
 Running as user : LAPTOP-MFMQJOT0\nicho
 Temp directory: C:\temp
 Project directory: C:\Users\nicho\OneDrive\Documents\Ansoft
+The project 'MIE1242_Phase1_Coldplate' has been edited and/or solved. Do you want to save the changes?
+-- Message Window --
+      *Global - Messages
+        [info] gRPC server started on port 63666 of local host. Only connections from the local host initiated by the same user are permitted. 
+        [info] The project 'MIE1242_Phase1_Coldplate' has been edited and/or solved. Do you want to save the changes?
+-- Message Window --
+Stopping Batch Run: 4:45:47 PM  Nov 08, 2026
+025.2.4, Build: 2025-11-06 17:01:32
+Location: C:\Program Files\ANSYS Inc\ANSYS Student\v252\AnsysEM\ansysedtsv.exe
+Non Graphical Mode: No Project??
+Starting Batch Run: 4:45:47 PM  Nov 08, 2026
+Running as user : LAPTOP-MFMQJOT0\nicho
+Temp directory: C:\temp
+Project directory: C:\Users\nicho\OneDrive\Documents\Ansoft
+The project 'MIE1242_Phase1_Coldplate' has been edited and/or solved. Do you want to save the changes?
+-- Message Window --
+      *Global - Messages
+        [info] gRPC server started on port 50300 of local host. Only connections from the local host initiated by the same user are permitted. 
+        [info] The project 'MIE1242_Phase1_Coldplate' has been edited and/or solved. Do you want to save the changes?
+      MIE1242_Phase1_Coldplate (C:/Temp/MIE1242_FinalProject_Phase1/)
+        Phase1_fin_pitch_1p5 (SteadyState)
+          [error] Script macro error: Command is read only. (04:46:24 PM  Nov 08, 2026)
+          [error] Script macro error: Command is read only. (04:46:24 PM  Nov 08, 2026)
+          [error] Script macro error: Command is read only. (04:46:25 PM  Nov 08, 2026)
+        Phase1_fin_pitch_2p0 (SteadyState)
+          [error] Script macro error: Command is read only. (04:46:43 PM  Nov 08, 2026)
+          [error] Script macro error: Command is read only. (04:46:43 PM  Nov 08, 2026)
+          [error] Script macro error: Command is read only. (04:46:44 PM  Nov 08, 2026)
+        Phase1_fin_pitch_2p5 (SteadyState)
+          [error] Script macro error: Command is read only. (04:47:03 PM  Nov 08, 2026)
+          [error] Script macro error: Command is read only. (04:47:03 PM  Nov 08, 2026)
+          [error] Script macro error: Command is read only. (04:47:04 PM  Nov 08, 2026)
+        Phase1_fin_pitch_3p0 (SteadyState)
+          [error] Script macro error: Command is read only. (04:47:22 PM  Nov 08, 2026)
+          [error] Script macro error: Command is read only. (04:47:22 PM  Nov 08, 2026)
+          [error] Script macro error: Command is read only. (04:47:22 PM  Nov 08, 2026)
+          [info] Validation warning: Skipped entity checks. (04:48:54 PM  Nov 08, 2026)
+          [info] Normal completion of simulation on server: Local Machine. (04:49:00 PM  Nov 08, 2026)
+          [warning] Warning - Boundary 'Q_ring' and Boundary 'Q_center' overlap.   (04:49:36 PM  Nov 08, 2026)
+          [error] Solver failed because of poor mesh quality. Try adjusting the mesh settings. (04:50:04 PM  Nov 08, 2026)
+          [error] Simulation completed with execution error on server: Local Machine. (04:50:06 PM  Nov 08, 2026)
+-- Message Window --
+Stopping Batch Run: 4:51:49 PM  Nov 08, 2026
+ 
+Ansys Electronics Desktop Student Version 2025.2.4, Build: 2025-11-06 17:01:32
+Location: C:\Program Files\ANSYS Inc\ANSYS Student\v252\AnsysEM\ansysedtsv.exe
+Non Graphical Mode: No Project??
+Starting Batch Run: 4:51:55 PM  Nov 08, 2026
+Running as user : LAPTOP-MFMQJOT0\nicho
+Temp directory: C:\temp
+Project directory: C:\Users\nicho\OneDrive\Documents\Ansoft
+[error] A geometry must be selected to generate a plot.

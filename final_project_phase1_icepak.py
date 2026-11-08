@@ -37,7 +37,7 @@ DESIGN_NAME = "Phase1"
 # 2. SWEEP CONFIGURATION
 # ----------------------------------------------------------------------------
 # Options: "single", "tim_thickness", "fin_pitch", "fin_thickness", "fin_height"
-TARGET_SWEEP = "fin_pitch"
+TARGET_SWEEP = "tim_thickness"
 
 SWEEP_RANGES = {
     "tim_thickness": [0.025, 0.05, 0.10, 0.20],
