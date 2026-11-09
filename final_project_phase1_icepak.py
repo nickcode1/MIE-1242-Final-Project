@@ -16,9 +16,12 @@ import subprocess
 import time
 
 try:
-    from ansys.aedt.core import Icepak
+    from ansys.aedt.core import Icepak, settings
+        
 except ImportError:
     from pyaedt import Icepak
+
+settings.release_on_exception = False  # Prevents PyAEDT from killing gRPC on minor post errors!
 
 # ----------------------------------------------------------------------------
 # 1. AEDT & PROJECT SETTINGS
@@ -464,22 +467,65 @@ def build_phase1_model(ipk, t_tim_mm, fin_pitch_mm, fin_thick_mm, fin_height_mm)
 
 
 # ----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 # POST-PROCESSING
 # ----------------------------------------------------------------------------
 def _field(ipk, quantity, obj, func="Maximum", obj_type="volume"):
-    """PyAEDT 1.x signature: quantity is the first positional argument."""
-    return float(ipk.post.get_scalar_field_value(
-        quantity, scalar_function=func, object_name=obj, object_type=obj_type
-    ))
+    """Direct FieldsReporter evaluation to bypass PyAEDT 1.9 available_report_quantities bug."""
+    omodule = ipk.odesign.GetModule("FieldsReporter")
+    omodule.CalcStack("clear")
+    omodule.EnterQty(quantity)
+
+    if obj_type.lower() == "volume":
+        omodule.EnterVol(obj)
+    else:
+        omodule.EnterSurf(obj)
+
+    if func.lower() in ("mean", "average"):
+        # Mean over a surface/volume = Integrate / Area(or Vol), or direct Mean if supported
+        try:
+            omodule.CalcOp("Mean")
+        except Exception:
+            # Fallback to Area/Volume weighted average if "Mean" op is named "Average"
+            omodule.CalcOp("Average")
+    else:
+        omodule.CalcOp(func)
+
+    tmp_file = os.path.join(WORK_DIR, f"calc_{quantity}_{obj}.out")
+    if os.path.exists(tmp_file):
+        try:
+            os.remove(tmp_file)
+        except OSError:
+            pass
+
+    # Build variation list from nominal variables so parametric designs resolve cleanly
+    variation = []
+    for k, v in ipk.available_variations.nominal_w_values_dict.items():
+        variation.extend([f"{k}:=", [v]])
+
+    omodule.CalculatorWrite(tmp_file, ["Solution:=", ipk.nominal_sweep], variation)
+    omodule.CalcStack("clear")
+
+    with open(tmp_file, "r") as f:
+        lines = [line.strip() for line in f if line.strip()]
+    
+    # Parse the scalar value from the last line of the .out file
+    raw_val = float(lines[-1].split()[-1])
+    
+    # Note: FieldsReporter in AEDT outputs Temperature in Kelvin by default!
+    # If the value is > 200, convert Kelvin to Celsius:
+    if quantity == "Temperature" and raw_val > 200.0:
+        return raw_val - 273.15
+    return raw_val
 
 
 def read_results(ipk):
     """Returns a dict of results, or None if the temperature readout fails."""
     try:
         res = {
-            "t_ring": _field(ipk, "Temperature", "Die_ring"),
-            "t_center": _field(ipk, "Temperature", "Die_center"),
-            "t_cp": _field(ipk, "Temperature", "Coldplate_Body"),
+            "t_ring": _field(ipk, "Temperature", "Die_ring", "Maximum", "volume"),
+            "t_center": _field(ipk, "Temperature", "Die_center", "Maximum", "volume"),
+            "t_cp": _field(ipk, "Temperature", "Coldplate_Body", "Maximum", "volume"),
             "p_in": None, "p_out": None, "dp_pa": None,
             "v_in": None, "v_out": None, "v_max": None,
         }
@@ -497,14 +543,10 @@ def read_results(ipk):
         try:
             res["v_in"] = _field(ipk, "Speed", "FaceList_Inlet", "Mean", "surface")
             res["v_out"] = _field(ipk, "Speed", "FaceList_Outlet", "Mean", "surface")
-            res["v_max"] = _field(ipk, "Speed", "Coolant_Domain")
+            res["v_max"] = _field(ipk, "Speed", "Coolant_Domain", "Maximum", "volume")
         except Exception as ex:
             print(f"Velocity readout warning: {ex}")
 
-    try:
-        ipk.odesign.GetModule("FieldsReporter").CalcStack("clear")
-    except Exception:
-        pass
     return res
 
 
@@ -516,6 +558,9 @@ def _fmt(val, nd=3):
 # MAIN EXECUTION LOOP
 # ----------------------------------------------------------------------------
 if __name__ == "__main__":
+    from ansys.aedt.core import settings
+    settings.release_on_exception = False  # Keep gRPC alive even if a non-fatal warning occurs
+
     cleanup_processes()
     print(f"\n{'='*70}")
     print(f"Building MIE1242 Phase 1 Model | Sweep Mode: {TARGET_SWEEP}")
@@ -551,10 +596,8 @@ if __name__ == "__main__":
         design_case_name = f"{DESIGN_NAME}_{TARGET_SWEEP}_{run['val']}".replace(".", "p")
         print(f"\n--- Generating Design ({idx+1}/{len(runs)}): {design_case_name} ---")
 
-        if idx == 0:
-            ipk = open_icepak(design_name=design_case_name, new_desktop=True)
-        else:
-            ipk.insert_design(design_case_name)
+        # Connect to the existing Desktop session cleanly for each new design
+        ipk = open_icepak(design_name=design_case_name, new_desktop=(idx == 0))
 
         build_phase1_model(ipk, run["t_tim"], run["pitch"], run["t_thick"], run["h_fin"])
         ipk.save_project()
