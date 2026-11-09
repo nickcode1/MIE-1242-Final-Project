@@ -251,3 +251,56 @@ Project directory: C:\Users\nicho\OneDrive\Documents\Ansoft
           [error] Script macro error: Command is read only. (07:00:56 PM  Nov 08, 2026)
 -- Message Window --
 Stopping Batch Run: 7:11:03 PM  Nov 08, 2026
+ 
+Ansys Electronics Desktop Student Version 2025.2.4, Build: 2025-11-06 17:01:32
+Location: C:\Program Files\ANSYS Inc\ANSYS Student\v252\AnsysEM\ansysedtsv.exe
+Non Graphical Mode: No Project??
+Starting Batch Run: 7:16:45 PM  Nov 08, 2026
+Running as user : LAPTOP-MFMQJOT0\nicho
+Temp directory: C:\temp
+Project directory: C:\Users\nicho\OneDrive\Documents\Ansoft
+-- Message Window --
+      *Global - Messages
+        [info] gRPC server started on port 59303 of local host. Only connections from the local host initiated by the same user are permitted. 
+      MIE1242_Phase1_Coldplate (C:/Temp/MIE1242_FinalProject_Phase1/)
+        Phase1_tim_thickness_0p025 (SteadyState)
+          [error] Script macro error: Command is read only. (07:17:08 PM  Nov 08, 2026)
+          [error] Script macro error: Command is read only. (07:17:08 PM  Nov 08, 2026)
+          [error] Script macro error: Command is read only. (07:17:08 PM  Nov 08, 2026)
+          [info] Validation warning: Skipped entity checks. (07:17:11 PM  Nov 08, 2026)
+          [warning] Warning - Boundary 'Q_ring' and Boundary 'Q_center' overlap.   (07:17:11 PM  Nov 08, 2026)
+          [warning] Com Engine non-responsive since 19:18:10, November 08, 2026.   Can be due to CPU intensive processing or network problems.   If persisting for long, manually kill the com engine process and restart analysis. Retrying.....  (07:19:10 PM  Nov 08, 2026)
+          [error] Machine Local Machine: Engine terminated unexpectedly, or machine reported error or was inaccessible. (07:20:09 PM  Nov 08, 2026)
+          [error] Script macro error: Abnormal script termination. (07:20:09 PM  Nov 08, 2026)
+        Phase1_tim_thickness_0p05 (SteadyState)
+          [error] Script macro error: Command is read only. (07:20:17 PM  Nov 08, 2026)
+          [error] Script macro error: Command is read only. (07:20:17 PM  Nov 08, 2026)
+          [error] Script macro error: Command is read only. (07:20:18 PM  Nov 08, 2026)
+          [info] Validation warning: Skipped entity checks. (07:20:20 PM  Nov 08, 2026)
+          [warning] Warning - Boundary 'Q_ring' and Boundary 'Q_center' overlap.   (07:20:20 PM  Nov 08, 2026)
+          [error] Solver failed because of poor mesh quality. Try adjusting the mesh settings. (07:20:46 PM  Nov 08, 2026)
+          [error] Simulation completed with execution error on server: Local Machine. (07:20:46 PM  Nov 08, 2026)
+          [error] Script macro error: Simulation for MIE1242_Phase1_Coldplate : Phase1_tim_thickness_0p05 : Setup1 has failed with execution error.  (07:20:46 PM  Nov 08, 2026)
+          [error] Script macro error: Abnormal script termination. (07:20:47 PM  Nov 08, 2026)
+        Phase1_tim_thickness_0p1 (SteadyState)
+          [error] Script macro error: Command is read only. (07:20:55 PM  Nov 08, 2026)
+          [error] Script macro error: Command is read only. (07:20:56 PM  Nov 08, 2026)
+          [error] Script macro error: Command is read only. (07:20:56 PM  Nov 08, 2026)
+          [info] Validation warning: Skipped entity checks. (07:20:59 PM  Nov 08, 2026)
+          [warning] Warning - Boundary 'Q_ring' and Boundary 'Q_center' overlap.   (07:20:59 PM  Nov 08, 2026)
+          [error] Solver failed because of poor mesh quality. Try adjusting the mesh settings. (07:21:23 PM  Nov 08, 2026)
+          [error] Simulation completed with execution error on server: Local Machine. (07:21:23 PM  Nov 08, 2026)
+          [error] Script macro error: Simulation for MIE1242_Phase1_Coldplate : Phase1_tim_thickness_0p1 : Setup1 has failed with execution error.  (07:21:23 PM  Nov 08, 2026)
+          [error] Script macro error: Abnormal script termination. (07:21:24 PM  Nov 08, 2026)
+        Phase1_tim_thickness_0p2 (SteadyState)
+          [error] Script macro error: Command is read only. (07:21:33 PM  Nov 08, 2026)
+          [error] Script macro error: Command is read only. (07:21:33 PM  Nov 08, 2026)
+          [error] Script macro error: Command is read only. (07:21:34 PM  Nov 08, 2026)
+          [info] Validation warning: Skipped entity checks. (07:21:37 PM  Nov 08, 2026)
+          [warning] Warning - Boundary 'Q_ring' and Boundary 'Q_center' overlap.   (07:21:37 PM  Nov 08, 2026)
+          [error] Solver failed because of poor mesh quality. Try adjusting the mesh settings. (07:22:01 PM  Nov 08, 2026)
+          [error] Simulation completed with execution error on server: Local Machine. (07:22:01 PM  Nov 08, 2026)
+          [error] Script macro error: Simulation for MIE1242_Phase1_Coldplate : Phase1_tim_thickness_0p2 : Setup1 has failed with execution error.  (07:22:01 PM  Nov 08, 2026)
+          [error] Script macro error: Abnormal script termination. (07:22:02 PM  Nov 08, 2026)
+-- Message Window --
+Stopping Batch Run: 7:28:10 PM  Nov 08, 2026
