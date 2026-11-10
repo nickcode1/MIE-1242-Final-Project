@@ -546,3 +546,85 @@ Project directory: C:\Users\nicho\OneDrive\Documents\Ansoft
 
 [warning] Electronics Desktop Student cannot be closed right now because it is being used by another application, script or extension wizard.
 
+ 
+Ansys Electronics Desktop Student Version 2025.2.4, Build: 2025-11-06 17:01:32
+Location: C:\Program Files\ANSYS Inc\ANSYS Student\v252\AnsysEM\ansysedtsv.exe
+Non Graphical Mode: No Project??
+Starting Batch Run: 3:30:15 PM  Nov 10, 2026
+Running as user : LAPTOP-MFMQJOT0\nicho
+Temp directory: C:\temp
+Project directory: C:\Users\nicho\OneDrive\Documents\Ansoft
+The project 'MIE1242_Phase1_Coldplate' has been edited and/or solved. Do you want to save the changes?
+-- Message Window --
+      *Global - Messages
+        [info] gRPC server started on port 53278 of local host. Only connections from the local host initiated by the same user are permitted. 
+        [info] The project 'MIE1242_Phase1_Coldplate' has been edited and/or solved. Do you want to save the changes?
+      MIE1242_Phase1_Coldplate (C:/Temp/MIE1242_FinalProject_Phase1/)
+        Phase1_tim_thickness_0p025 (SteadyState)
+          [warning] 'Surface material' for object 'Region' is set to default due to object material type change. (03:30:31 PM  Nov 10, 2026)
+          [info] Validation warning: Skipped entity checks. (03:30:37 PM  Nov 10, 2026)
+          [error] The Region must be fluid. (03:30:37 PM  Nov 10, 2026)
+          [error] Simulation completed with execution error on server: Local Machine. (03:30:38 PM  Nov 10, 2026)
+          [error] Script macro error: Simulation for MIE1242_Phase1_Coldplate : Phase1_tim_thickness_0p025 : Setup1 has failed with execution error.  (03:30:38 PM  Nov 10, 2026)
+        Phase1_tim_thickness_0p05 (SteadyState)
+          [warning] 'Surface material' for object 'Region' is set to default due to object material type change. (03:30:40 PM  Nov 10, 2026)
+          [info] Validation warning: Skipped entity checks. (03:30:46 PM  Nov 10, 2026)
+          [error] The Region must be fluid. (03:30:46 PM  Nov 10, 2026)
+          [error] Simulation completed with execution error on server: Local Machine. (03:30:47 PM  Nov 10, 2026)
+          [error] Script macro error: Simulation for MIE1242_Phase1_Coldplate : Phase1_tim_thickness_0p05 : Setup1 has failed with execution error.  (03:30:48 PM  Nov 10, 2026)
+        Phase1_tim_thickness_0p1 (SteadyState)
+          [warning] 'Surface material' for object 'Region' is set to default due to object material type change. (03:30:50 PM  Nov 10, 2026)
+          [info] Validation warning: Skipped entity checks. (03:30:57 PM  Nov 10, 2026)
+          [error] The Region must be fluid. (03:30:58 PM  Nov 10, 2026)
+          [error] Simulation completed with execution error on server: Local Machine. (03:30:58 PM  Nov 10, 2026)
+          [error] Script macro error: Simulation for MIE1242_Phase1_Coldplate : Phase1_tim_thickness_0p1 : Setup1 has failed with execution error.  (03:30:58 PM  Nov 10, 2026)
+        Phase1_tim_thickness_0p2 (SteadyState)
+          [warning] 'Surface material' for object 'Region' is set to default due to object material type change. (03:31:00 PM  Nov 10, 2026)
+          [info] Validation warning: Skipped entity checks. (03:31:08 PM  Nov 10, 2026)
+          [error] The Region must be fluid. (03:31:08 PM  Nov 10, 2026)
+          [error] Simulation completed with execution error on server: Local Machine. (03:31:08 PM  Nov 10, 2026)
+          [error] Script macro error: Simulation for MIE1242_Phase1_Coldplate : Phase1_tim_thickness_0p2 : Setup1 has failed with execution error.  (03:31:08 PM  Nov 10, 2026)
+        [error] While parsing expression: "Fluid", an error was found near character 4. 'Fluid' is not a defined variable name in this context. (03:30:30 PM  Nov 10, 2026)
+-- Message Window --
+Stopping Batch Run: 3:33:37 PM  Nov 10, 2026
+ 
+Ansys Electronics Desktop Student Version 2025.2.4, Build: 2025-11-06 17:01:32
+Location: C:\Program Files\ANSYS Inc\ANSYS Student\v252\AnsysEM\ansysedtsv.exe
+Non Graphical Mode: No Project??
+Starting Batch Run: 6:15:07 PM  Nov 10, 2026
+Running as user : LAPTOP-MFMQJOT0\nicho
+Temp directory: C:\temp
+Project directory: C:\Users\nicho\OneDrive\Documents\Ansoft
+The project 'MIE1242_Phase1_Coldplate' has been edited and/or solved. Do you want to save the changes?
+-- Message Window --
+      *Global - Messages
+        [info] gRPC server started on port 60730 of local host. Only connections from the local host initiated by the same user are permitted. 
+        [info] The project 'MIE1242_Phase1_Coldplate' has been edited and/or solved. Do you want to save the changes?
+      MIE1242_Phase1_Coldplate (C:/Temp/MIE1242_FinalProject_Phase1/)
+        Phase1_tim_thickness_0p025 (SteadyState)
+          [warning] 'Surface material' for object 'Region' is set to default due to object material type change. (06:15:26 PM  Nov 10, 2026)
+          [info] Validation warning: Skipped entity checks. (06:15:34 PM  Nov 10, 2026)
+          [error] The Region must be fluid. (06:15:34 PM  Nov 10, 2026)
+          [error] Simulation completed with execution error on server: Local Machine. (06:15:34 PM  Nov 10, 2026)
+          [error] Script macro error: Simulation for MIE1242_Phase1_Coldplate : Phase1_tim_thickness_0p025 : Setup1 has failed with execution error.  (06:15:34 PM  Nov 10, 2026)
+        Phase1_tim_thickness_0p05 (SteadyState)
+          [warning] 'Surface material' for object 'Region' is set to default due to object material type change. (06:15:37 PM  Nov 10, 2026)
+          [info] Validation warning: Skipped entity checks. (06:15:44 PM  Nov 10, 2026)
+          [error] The Region must be fluid. (06:15:44 PM  Nov 10, 2026)
+          [error] Simulation completed with execution error on server: Local Machine. (06:15:45 PM  Nov 10, 2026)
+          [error] Script macro error: Simulation for MIE1242_Phase1_Coldplate : Phase1_tim_thickness_0p05 : Setup1 has failed with execution error.  (06:15:45 PM  Nov 10, 2026)
+        Phase1_tim_thickness_0p1 (SteadyState)
+          [warning] 'Surface material' for object 'Region' is set to default due to object material type change. (06:15:47 PM  Nov 10, 2026)
+          [info] Validation warning: Skipped entity checks. (06:15:56 PM  Nov 10, 2026)
+          [error] The Region must be fluid. (06:15:56 PM  Nov 10, 2026)
+          [error] Simulation completed with execution error on server: Local Machine. (06:15:56 PM  Nov 10, 2026)
+          [error] Script macro error: Simulation for MIE1242_Phase1_Coldplate : Phase1_tim_thickness_0p1 : Setup1 has failed with execution error.  (06:15:56 PM  Nov 10, 2026)
+        Phase1_tim_thickness_0p2 (SteadyState)
+          [warning] 'Surface material' for object 'Region' is set to default due to object material type change. (06:15:59 PM  Nov 10, 2026)
+          [info] Validation warning: Skipped entity checks. (06:16:08 PM  Nov 10, 2026)
+          [error] The Region must be fluid. (06:16:08 PM  Nov 10, 2026)
+          [error] Simulation completed with execution error on server: Local Machine. (06:16:08 PM  Nov 10, 2026)
+          [error] Script macro error: Simulation for MIE1242_Phase1_Coldplate : Phase1_tim_thickness_0p2 : Setup1 has failed with execution error.  (06:16:09 PM  Nov 10, 2026)
+        [error] While parsing expression: "Fluid", an error was found near character 4. 'Fluid' is not a defined variable name in this context. (06:15:25 PM  Nov 10, 2026)
+-- Message Window --
+Stopping Batch Run: 6:16:34 PM  Nov 10, 2026

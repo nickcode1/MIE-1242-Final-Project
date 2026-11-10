@@ -33,7 +33,7 @@ DESIGN_NAME = "Phase1"
 TARGET_SWEEP = "tim_thickness"
 
 SWEEP_RANGES = {
-    "tim_thickness": [0.025, 0.05, 0.10, 0.20],
+    "tim_thickness": [0.025],
 }
 
 # ----------------------------------------------------------------------------
@@ -122,8 +122,9 @@ def create_materials(ipk, k_tim):
             mat.mass_density = 1900.0
             mat.specific_heat = 1000.0
 
-    # Use built-in AEDT 'water' (@280K/300K) or 'Water-Liquid' as base so AEDT
-    # flags thermal_material_type as Fluid properly.
+    # Define water natively so it is flagged as a Fluid. The flag must be the
+    # nested ChoiceProperty block (as in the syslib Materials.amat); a plain
+    # "thermal_material_type:=", "Fluid" pair is rejected and leaves a Solid.
     if not mat_exists("mat_Water"):
         omaterial_mgr = ipk.oproject.GetDefinitionManager()
         omaterial_mgr.AddMaterial(
@@ -132,7 +133,12 @@ def create_materials(ipk, k_tim):
                 "CoordinateSystemType:=", "Cartesian",
                 "BulkOrSurfaceType:=", 1,
                 ["NAME:PhysicsTypes", "set:=", ["Thermal"]],
-                "thermal_material_type:=", "Fluid",
+                [
+                    "NAME:thermal_material_type",
+                    "property_type:=", "ChoiceProperty",
+                    "Choice:=", "Fluid",
+                ],
+                "molecular_mass:=", "0.018015",
                 "thermal_conductivity:=", "0.6",
                 "mass_density:=", "997",
                 "specific_heat:=", "4182",
@@ -176,9 +182,8 @@ def build_phase1_model(ipk, t_tim_mm, fin_pitch_mm, fin_thick_mm, fin_height_mm)
 
     create_materials(ipk, K_TIM)
 
-    # Set outer Region to conduction-only dead air so Icepak only solves CFD
-    # inside the water Coolant_Domain (avoids unvented dual-fluid crash).
-    ipk.modeler["Region"].material_name = "mat_Air_Dead"
+    # The outer Region is left as the default air: Icepak requires the Region
+    # to be a fluid ("The Region must be fluid").
 
     def box(name, origin, size, material):
         return ipk.modeler.create_box(origin, size, name=name, material=material)
