@@ -1,1 +1,1 @@
-sweep_mode,sweep_val,tim_mm,fin_pitch_mm,fin_thick_mm,fin_height_mm,T_die_center_C,T_die_ring_C,T_coldplate_C,p_in_Pa,p_out_Pa,dP_Pa,v_in_m_s,v_out_m_s,v_max_m_s
+sweep_mode,sweep_val,tim_mm,fin_pitch_mm,fin_thick_mm,fin_height_mm,T_die_max_C,T_coldplate_C,p_in_Pa,p_out_Pa,dP_Pa,v_in_m_s,v_out_m_s,v_max_m_s
