@@ -449,3 +449,84 @@ Project directory: C:\Users\nicho\OneDrive\Documents\Ansoft
           [error] Simulation completed with execution error on server: Local Machine. (02:47:13 PM  Nov 10, 2026)
           [error] Script macro error: Simulation for MIE1242_Phase1_Coldplate : Phase1_tim_thickness_0p2 : Setup1 has failed with execution error.  (02:47:13 PM  Nov 10, 2026)
 -- Message Window --
+Stopping Batch Run: 2:55:37 PM  Nov 10, 2026
+ 
+Ansys Electronics Desktop Student Version 2025.2.4, Build: 2025-11-06 17:01:32
+Location: C:\Program Files\ANSYS Inc\ANSYS Student\v252\AnsysEM\ansysedtsv.exe
+Non Graphical Mode: No Project??
+Starting Batch Run: 2:55:44 PM  Nov 10, 2026
+Running as user : LAPTOP-MFMQJOT0\nicho
+Temp directory: C:\temp
+Project directory: C:\Users\nicho\OneDrive\Documents\Ansoft
+The project 'MIE1242_Phase1_Coldplate' has been edited and/or solved. Do you want to save the changes?
+-- Message Window --
+      *Global - Messages
+        [info] gRPC server started on port 63687 of local host. Only connections from the local host initiated by the same user are permitted. 
+        [info] The project 'MIE1242_Phase1_Coldplate' has been edited and/or solved. Do you want to save the changes?
+      MIE1242_Phase1_Coldplate (C:/Temp/MIE1242_FinalProject_Phase1/)
+        Phase1_tim_thickness_0p025 (SteadyState)
+          [error] Script macro error: Command is read only. (02:56:04 PM  Nov 10, 2026)
+          [error] Script macro error: Command is read only. (02:56:05 PM  Nov 10, 2026)
+          [error] Script macro error: Command is read only. (02:56:05 PM  Nov 10, 2026)
+          [info] Validation warning: Skipped entity checks. (02:56:08 PM  Nov 10, 2026)
+          [warning] Warning - Boundary 'Q_ring_N' and Boundary 'Q_ring_W' overlap.   (02:56:08 PM  Nov 10, 2026)
+          [warning] Warning - Boundary 'Q_ring_N' and Boundary 'Q_center' overlap.   (02:56:08 PM  Nov 10, 2026)
+          [warning] Warning - Boundary 'Q_ring_N' and Boundary 'Q_ring_E' overlap.   (02:56:08 PM  Nov 10, 2026)
+          [warning] Warning - Boundary 'Q_ring_S' and Boundary 'Q_ring_W' overlap.   (02:56:08 PM  Nov 10, 2026)
+          [warning] Warning - Boundary 'Q_ring_S' and Boundary 'Q_ring_E' overlap.   (02:56:08 PM  Nov 10, 2026)
+          [warning] Warning - Boundary 'Q_ring_S' and Boundary 'Q_center' overlap.   (02:56:08 PM  Nov 10, 2026)
+          [warning] Warning - Boundary 'Q_ring_W' and Boundary 'Q_center' overlap.   (02:56:08 PM  Nov 10, 2026)
+          [warning] Warning - Boundary 'Q_ring_E' and Boundary 'Q_center' overlap.   (02:56:08 PM  Nov 10, 2026)
+          [error] Failed to launch mesher (02:56:12 PM  Nov 10, 2026)
+          [error] Simulation completed with execution error on server: Local Machine. (02:56:12 PM  Nov 10, 2026)
+          [error] Script macro error: Simulation for MIE1242_Phase1_Coldplate : Phase1_tim_thickness_0p025 : Setup1 has failed with execution error.  (02:56:12 PM  Nov 10, 2026)
+        Phase1_tim_thickness_0p05 (SteadyState)
+          [error] Script macro error: Command is read only. (02:56:19 PM  Nov 10, 2026)
+          [error] Script macro error: Command is read only. (02:56:19 PM  Nov 10, 2026)
+          [error] Script macro error: Command is read only. (02:56:19 PM  Nov 10, 2026)
+          [info] Validation warning: Skipped entity checks. (02:56:22 PM  Nov 10, 2026)
+          [warning] Warning - Boundary 'Q_ring_N' and Boundary 'Q_ring_W' overlap.   (02:56:22 PM  Nov 10, 2026)
+          [warning] Warning - Boundary 'Q_ring_N' and Boundary 'Q_ring_E' overlap.   (02:56:22 PM  Nov 10, 2026)
+          [warning] Warning - Boundary 'Q_ring_N' and Boundary 'Q_center' overlap.   (02:56:22 PM  Nov 10, 2026)
+          [warning] Warning - Boundary 'Q_ring_S' and Boundary 'Q_ring_E' overlap.   (02:56:22 PM  Nov 10, 2026)
+          [warning] Warning - Boundary 'Q_ring_S' and Boundary 'Q_center' overlap.   (02:56:22 PM  Nov 10, 2026)
+          [warning] Warning - Boundary 'Q_ring_S' and Boundary 'Q_ring_W' overlap.   (02:56:22 PM  Nov 10, 2026)
+          [warning] Warning - Boundary 'Q_ring_W' and Boundary 'Q_center' overlap.   (02:56:22 PM  Nov 10, 2026)
+          [warning] Warning - Boundary 'Q_ring_E' and Boundary 'Q_center' overlap.   (02:56:22 PM  Nov 10, 2026)
+          [error] Hdm Fatal error: CART3D FAILED for assembly (mesh region):   (02:56:23 PM  Nov 10, 2026)
+          [error] Simulation completed with execution error on server: Local Machine. (02:56:24 PM  Nov 10, 2026)
+          [error] Script macro error: Simulation for MIE1242_Phase1_Coldplate : Phase1_tim_thickness_0p05 : Setup1 has failed with execution error.  (02:56:24 PM  Nov 10, 2026)
+        Phase1_tim_thickness_0p1 (SteadyState)
+          [error] Script macro error: Command is read only. (02:56:32 PM  Nov 10, 2026)
+          [error] Script macro error: Command is read only. (02:56:32 PM  Nov 10, 2026)
+          [error] Script macro error: Command is read only. (02:56:32 PM  Nov 10, 2026)
+          [info] Validation warning: Skipped entity checks. (02:56:35 PM  Nov 10, 2026)
+          [warning] Warning - Boundary 'Q_ring_N' and Boundary 'Q_ring_W' overlap.   (02:56:35 PM  Nov 10, 2026)
+          [warning] Warning - Boundary 'Q_ring_N' and Boundary 'Q_ring_E' overlap.   (02:56:35 PM  Nov 10, 2026)
+          [warning] Warning - Boundary 'Q_ring_N' and Boundary 'Q_center' overlap.   (02:56:35 PM  Nov 10, 2026)
+          [warning] Warning - Boundary 'Q_ring_S' and Boundary 'Q_center' overlap.   (02:56:35 PM  Nov 10, 2026)
+          [warning] Warning - Boundary 'Q_ring_S' and Boundary 'Q_ring_E' overlap.   (02:56:35 PM  Nov 10, 2026)
+          [warning] Warning - Boundary 'Q_ring_S' and Boundary 'Q_ring_W' overlap.   (02:56:35 PM  Nov 10, 2026)
+          [warning] Warning - Boundary 'Q_ring_W' and Boundary 'Q_center' overlap.   (02:56:35 PM  Nov 10, 2026)
+          [warning] Warning - Boundary 'Q_ring_E' and Boundary 'Q_center' overlap.   (02:56:36 PM  Nov 10, 2026)
+          [error] Hdm Fatal error: CART3D FAILED for assembly (mesh region):   (02:56:36 PM  Nov 10, 2026)
+          [error] Simulation completed with execution error on server: Local Machine. (02:56:37 PM  Nov 10, 2026)
+          [error] Script macro error: Simulation for MIE1242_Phase1_Coldplate : Phase1_tim_thickness_0p1 : Setup1 has failed with execution error.  (02:56:37 PM  Nov 10, 2026)
+        Phase1_tim_thickness_0p2 (SteadyState)
+          [error] Script macro error: Command is read only. (02:56:45 PM  Nov 10, 2026)
+          [error] Script macro error: Command is read only. (02:56:45 PM  Nov 10, 2026)
+          [error] Script macro error: Command is read only. (02:56:46 PM  Nov 10, 2026)
+          [info] Validation warning: Skipped entity checks. (02:56:49 PM  Nov 10, 2026)
+          [warning] Warning - Boundary 'Q_ring_N' and Boundary 'Q_center' overlap.   (02:56:49 PM  Nov 10, 2026)
+          [warning] Warning - Boundary 'Q_ring_N' and Boundary 'Q_ring_E' overlap.   (02:56:49 PM  Nov 10, 2026)
+          [warning] Warning - Boundary 'Q_ring_N' and Boundary 'Q_ring_W' overlap.   (02:56:49 PM  Nov 10, 2026)
+          [warning] Warning - Boundary 'Q_ring_S' and Boundary 'Q_ring_E' overlap.   (02:56:49 PM  Nov 10, 2026)
+          [warning] Warning - Boundary 'Q_ring_S' and Boundary 'Q_center' overlap.   (02:56:49 PM  Nov 10, 2026)
+          [warning] Warning - Boundary 'Q_ring_S' and Boundary 'Q_ring_W' overlap.   (02:56:49 PM  Nov 10, 2026)
+          [warning] Warning - Boundary 'Q_ring_W' and Boundary 'Q_center' overlap.   (02:56:49 PM  Nov 10, 2026)
+          [warning] Warning - Boundary 'Q_ring_E' and Boundary 'Q_center' overlap.   (02:56:49 PM  Nov 10, 2026)
+          [error] Hdm Fatal error: CART3D FAILED for assembly (mesh region):   (02:56:50 PM  Nov 10, 2026)
+          [error] Simulation completed with execution error on server: Local Machine. (02:56:50 PM  Nov 10, 2026)
+          [error] Script macro error: Simulation for MIE1242_Phase1_Coldplate : Phase1_tim_thickness_0p2 : Setup1 has failed with execution error.  (02:56:50 PM  Nov 10, 2026)
+-- Message Window --
+Stopping Batch Run: 3:07:09 PM  Nov 10, 2026
