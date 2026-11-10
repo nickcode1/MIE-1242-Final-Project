@@ -467,30 +467,37 @@ def build_phase1_model(ipk, t_tim_mm, fin_pitch_mm, fin_thick_mm, fin_height_mm)
 # POST-PROCESSING
 # ----------------------------------------------------------------------------
 def _field(ipk, quantity, obj, func="Maximum", obj_type="volume"):
-    """Reads scalar field values using FieldsReporter with automatic quantity-name fallback."""
-    omodule = ipk.odesign.GetModule("FieldsReporter")
+    """Reads scalar field values in PyAEDT 1.9+ with fallback to direct FieldsReporter."""
+    # 1. Try PyAEDT 1.9's native get_scalar_field_value first (now that the solve succeeded!)
+    for q_try in ([quantity, "Temp"] if quantity == "Temperature" else [quantity]):
+        try:
+            val = ipk.post.get_scalar_field_value(
+                q_try,
+                scalar_function=func,
+                object_name=obj,
+                object_type=obj_type,
+            )
+            if val is not None:
+                val = float(val)
+                return val - 273.15 if (quantity == "Temperature" and val > 200.0) else val
+        except Exception:
+            pass
 
+    # 2. Direct FieldsReporter fallback (compatible with PyAEDT 1.9+)
+    omodule = ipk.odesign.GetModule("FieldsReporter")
     qty_candidates = [quantity]
     if quantity == "Temperature":
         qty_candidates.append("Temp")
     elif quantity == "Speed":
         qty_candidates.extend(["Velocity", "Mag_Velocity"])
 
-    entered = False
     for q_name in qty_candidates:
         try:
             omodule.CalcStack("clear")
             omodule.EnterQty(q_name)
-            entered = True
             break
         except Exception:
             continue
-
-    if not entered:
-        val = float(ipk.post.get_scalar_field_value(
-            quantity, scalar_function=func, object_name=obj, object_type=obj_type
-        ))
-        return val - 273.15 if (quantity == "Temperature" and val > 200.0) else val
 
     if obj_type.lower() == "volume":
         omodule.EnterVol(obj)
@@ -498,10 +505,15 @@ def _field(ipk, quantity, obj, func="Maximum", obj_type="volume"):
         omodule.EnterSurf(obj)
 
     if func.lower() in ("mean", "average"):
-        try:
-            omodule.CalcOp("Mean")
-        except Exception:
-            omodule.CalcOp("Average")
+        # Surface/Volume average in FieldsReporter = Integrate / Area (or Volume)
+        omodule.CalcOp("Integrate")
+        if obj_type.lower() == "volume":
+            omodule.EnterVol(obj)
+            omodule.CalcOp("Volume")
+        else:
+            omodule.EnterSurf(obj)
+            omodule.CalcOp("Area")
+        omodule.CalcOp("/")
     else:
         omodule.CalcOp(func)
 
@@ -512,9 +524,13 @@ def _field(ipk, quantity, obj, func="Maximum", obj_type="volume"):
         except OSError:
             pass
 
+    # Build nominal variation list cleanly in PyAEDT 1.9 without nominal_w_values_dict
     variation = []
-    for k, v in ipk.available_variations.nominal_w_values_dict.items():
-        variation.extend([f"{k}:=", [v]])
+    try:
+        for var_name, var_obj in ipk.variable_manager.independent_variables.items():
+            variation.extend([f"{var_name}:=", ["Nominal"]])
+    except Exception:
+        pass
 
     omodule.CalculatorWrite(tmp_file, ["Solution:=", ipk.nominal_sweep], variation)
     omodule.CalcStack("clear")
