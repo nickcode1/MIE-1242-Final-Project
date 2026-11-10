@@ -282,14 +282,14 @@ def build_phase1_model(ipk, t_tim_mm, fin_pitch_mm, fin_thick_mm, fin_height_mm)
             "ComputeGap:=", True,
             "MaxElementSizeX:=", "2.0mm",
             "MaxElementSizeY:=", "2.0mm",
-            "MaxElementSizeZ:=", "0.25mm",
+            "MaxElementSizeZ:=", "0.5mm",
             "MinElementsInGap:=", "3",
             "MinElementsOnEdge:=", "2",
             "MaxSizeRatio:=", "2",
             "NoOGrids:=", False,
             "EnableMLM:=", True,
             "EnforeMLMType:=", "3D",
-            "MaxLevels:=", "3",
+            "MaxLevels:=", "2",
             "BufferLayers:=", "1",
             "UniformMeshParametersType:=", "XYZ Max Sizes",
             "StairStepMeshing:=", False,
@@ -300,13 +300,15 @@ def build_phase1_model(ipk, t_tim_mm, fin_pitch_mm, fin_thick_mm, fin_height_mm)
         ]
     )
 
-    # Local mesh refinement on thin TIM, Die, and Bumps so 0.025mm TIM is always resolved
+    # Light local refinement on the thin TIM, Die, and Bumps. Kept low because
+    # the Student licence caps the Icepak mesh at 512K elements; the mesher
+    # already places grid lines on the faces of these layers.
     omesh.AssignMeshOperation(
         [
             "NAME:Mesh_ThinLayers",
             "Enable:=", True,
-            "MaxLevel:=", "3",
-            "MinLevel:=", "2",
+            "MaxLevel:=", "1",
+            "MinLevel:=", "0",
             "Objects:=", ["TIM", "Die", "Bumps", "Die_hotspot"],
         ]
     )

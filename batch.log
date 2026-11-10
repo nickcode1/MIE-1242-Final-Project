@@ -628,3 +628,11 @@ The project 'MIE1242_Phase1_Coldplate' has been edited and/or solved. Do you wan
         [error] While parsing expression: "Fluid", an error was found near character 4. 'Fluid' is not a defined variable name in this context. (06:15:25 PM  Nov 10, 2026)
 -- Message Window --
 Stopping Batch Run: 6:16:34 PM  Nov 10, 2026
+ 
+Ansys Electronics Desktop Student Version 2025.2.4, Build: 2025-11-06 17:01:32
+Location: C:\Program Files\ANSYS Inc\ANSYS Student\v252\AnsysEM\ansysedtsv.exe
+Non Graphical Mode: No Project??
+Starting Batch Run: 6:29:34 PM  Nov 10, 2026
+Running as user : LAPTOP-MFMQJOT0\nicho
+Temp directory: C:\temp
+Project directory: C:\Users\nicho\OneDrive\Documents\Ansoft
