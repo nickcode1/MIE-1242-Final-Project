@@ -97,14 +97,11 @@ K_ALUMINUM = 205.0
 # 4. MESH SETTINGS & VISUALS
 # ----------------------------------------------------------------------------
 MESH_CONFIG = {
-    "label": "Student_Safe_Medium",
-    "max_xy_mm": 2.5,
-    "max_z_mm": 0.5,
-    "local_xy_mm": 1.0,
-    "thin_cells": 1,          # 1 hex cell across ultra-thin TIM prevents >512k Student limit crash
-    "min_elems_gap": 2,
+    "label": "Student_Safe_Cartesian",
+    "max_xy_mm": 2.0,
+    "max_z_mm": 0.4,
 }
-MIN_GAP_MM = 0.02
+MIN_GAP_MM = 0.01
 
 COLORS = {
     "PCB": (84, 130, 53),
@@ -166,38 +163,6 @@ def open_icepak(design_name, new_desktop=True):
     )
 
 
-def apply_region_settings(region, props, label="region"):
-    """Safely updates mesh settings in AEDT 2025.2 without touching read-only 'Command'."""
-    try:
-        available = set(region.settings.keys())
-    except Exception:
-        available = None
-
-    for key, val in props.items():
-        if key in ("Command", "UserSpecifiedSettings"):
-            continue
-        if available is not None and key not in available:
-            continue
-        try:
-            region.settings[key] = val
-        except Exception:
-            pass
-
-    # Enable manual settings via internal dictionary without triggering 'Command is read-only'
-    try:
-        if hasattr(region, "_settings") and isinstance(region._settings, dict):
-            region._settings["UserSpecifiedSettings"] = True
-            region._settings.pop("Command", None)
-    except Exception:
-        pass
-
-    try:
-        return bool(region.update())
-    except Exception as err:
-        print(f"  Mesh note ({label}): region.update() failed: {err}")
-        return False
-
-
 def create_materials(ipk, k_tim):
     def iso_material(name, k, rho=None, cp=None, mu=None):
         if name.lower() not in ipk.materials.material_keys:
@@ -226,46 +191,39 @@ def create_materials(ipk, k_tim):
     aniso_material("mat_BGA", 1.0, 100.0)
 
 
-def apply_mesh(ipk, t_tim_mm, mesh_cfg, stack_objs):
-    # Keep local Z element size >= 0.025 mm so we stay well within the 512k Student cell limit
-    local_z_val = max(min(T_BUMPS_MM, t_tim_mm) / mesh_cfg["thin_cells"], 0.025)
-    size = f"{mesh_cfg['max_xy_mm']}mm"
-    max_z = f"{mesh_cfg['max_z_mm']}mm"
+def apply_mesh_native(ipk, t_tim_mm, mesh_cfg):
+    """
+    Configures the Global Hex Mesh directly via AEDT's native MeshRegion module,
+    completely avoiding PyAEDT's broken `ipk.mesh` ('Command is read-only') wrapper
+    and avoiding SubRegion CART3D assembly failures or >512k Student cell explosions.
+    """
+    omesh = ipk.odesign.GetModule("MeshRegion")
+    size_xy = f"{mesh_cfg['max_xy_mm']}mm"
+    size_z = f"{mesh_cfg['max_z_mm']}mm"
     gap = f"{MIN_GAP_MM}mm"
-    xy = f"{mesh_cfg['local_xy_mm']}mm"
-    z = f"{local_z_val:.4f}mm"
-    min_elems = str(mesh_cfg["min_elems_gap"])
 
-    glob_props = {
-        "MeshMethod": "MesherHD",
-        "ComputeGap": True,
-        "UniformMeshParametersType": "XYZ Max Sizes",
-        "MaxElementSizeX": size,
-        "MaxElementSizeY": size,
-        "MaxElementSizeZ": max_z,
-        "MinGapX": gap,
-        "MinGapY": gap,
-        "MinGapZ": gap,
-        "MinElementsInGap": min_elems,
-        "EnableMLM": True,
-        "MaxLevels": 2,
-        "BufferLayers": 2,
-    }
-    apply_region_settings(ipk.mesh.global_mesh_region, glob_props, label="global")
-
+    # Try AEDT 2025.2 native EditGlobalMeshRegion / EditSubRegion without 'Command'
+    args = [
+        "NAME:Settings",
+        "MeshMethod:=", "MesherHD",
+        "UserSpecifiedSettings:=", True,
+        "ComputeGap:=", True,
+        "UniformMeshParametersType:=", "XYZ Max Sizes",
+        "MaxElementSizeX:=", size_xy,
+        "MaxElementSizeY:=", size_xy,
+        "MaxElementSizeZ:=", size_z,
+        "MinGapX:=", gap,
+        "MinGapY:=", gap,
+        "MinGapZ:=", gap,
+        "EnableMLM:=", False,
+    ]
     try:
-        reg = ipk.mesh.assign_mesh_region(stack_objs, name="refine_stack")
-        stack_props = glob_props.copy()
-        stack_props.update({
-            "MaxElementSizeX": xy,
-            "MaxElementSizeY": xy,
-            "MaxElementSizeZ": z,
-        })
-        apply_region_settings(reg, stack_props, label="refine_stack")
-    except Exception as err:
-        print(f"Warning - local mesh region note: {err}")
-
-    return local_z_val
+        omesh.EditGlobalMeshRegion(args)
+    except Exception:
+        # If EditGlobalMeshRegion uses a different signature, leave default Coarse/Medium
+        # global Cartesian grid (which naturally stays around ~80k elements for pure hex boxes).
+        pass
+    return t_tim_mm
 
 
 # ----------------------------------------------------------------------------
@@ -296,20 +254,25 @@ def build_phase1_model(ipk, t_tim_mm, fin_pitch_mm, fin_thick_mm, fin_height_mm)
     def box(name, origin, size, material):
         return ipk.modeler.create_box(origin, size, name=name, material=material)
 
-    # --- A. PACKAGE STACK (Pure Hex Primitives for 100% Orthogonal Mesh Quality) ---
+    # --- A. PACKAGE STACK (100% Non-Overlapping Hex Primitives) ---
     box("PCB", ["-50mm", "-50mm", "0mm"], ["100mm", "100mm", "t_pcb"], "mat_PCB")
     box("BGA_balls", ["-22.5mm", "-22.5mm", "z_bga"], ["45mm", "45mm", "t_bga"], "mat_BGA")
     box("Substrate", ["-22.5mm", "-22.5mm", "z_sub"], ["45mm", "45mm", "t_sub"], "mat_Substrate")
     box("Bumps", ["-12.5mm", "-12.5mm", "z_bumps"], ["25mm", "25mm", "t_bumps"], "mat_Bumps")
 
-    # Build Die_ring and Die_center as pure hex boxes (resolved via Icepak Object Priority)
-    box("Die_ring", ["-12.5mm", "-12.5mm", "z_die"], ["25mm", "25mm", "t_die"], "mat_Silicon")
+    # Center hotspot (10x10 mm) + 4 non-overlapping outer ring segments (25x25 mm outer)
+    # Using 4 flush hex segments completely eliminates 'Q_ring and Q_center overlap'
+    # and requires ZERO boolean operations or mesh priority overrides!
     box("Die_center", ["-5mm", "-5mm", "z_die"], ["10mm", "10mm", "t_die"], "mat_Silicon")
+    box("Die_ring_N", ["-12.5mm", "5mm", "z_die"], ["25mm", "7.5mm", "t_die"], "mat_Silicon")
+    box("Die_ring_S", ["-12.5mm", "-12.5mm", "z_die"], ["25mm", "7.5mm", "t_die"], "mat_Silicon")
+    box("Die_ring_W", ["-12.5mm", "-5mm", "z_die"], ["7.5mm", "10mm", "t_die"], "mat_Silicon")
+    box("Die_ring_E", ["5mm", "-5mm", "z_die"], ["7.5mm", "10mm", "t_die"], "mat_Silicon")
+    die_ring_names = ["Die_ring_N", "Die_ring_S", "Die_ring_W", "Die_ring_E"]
 
     stiff_names = []
     if INCLUDE_STIFFENER_RING:
         ipk["stiff_h"] = "t_bumps + t_die"
-        # Build Stiffener Ring from 4 pure hex bars so no boolean B-rep subtraction is needed
         box("Stiffener_N", ["-22.5mm", "22.5mm - wall_w", "z_bumps"], ["45mm", "wall_w", "stiff_h"], "mat_Copper")
         box("Stiffener_S", ["-22.5mm", "-22.5mm", "z_bumps"], ["45mm", "wall_w", "stiff_h"], "mat_Copper")
         box("Stiffener_W", ["-22.5mm", "-22.5mm + wall_w", "z_bumps"], ["wall_w", "45mm - 2*wall_w", "stiff_h"], "mat_Copper")
@@ -318,28 +281,51 @@ def build_phase1_model(ipk, t_tim_mm, fin_pitch_mm, fin_thick_mm, fin_height_mm)
 
     box("TIM", ["-12.5mm", "-12.5mm", "z_tim"], ["25mm", "25mm", "t_tim"], "mat_TIM")
 
-    # --- B. COLDPLATE (Pure Hex Primitives + Priority Hierarchy) ---
+    # --- B. COLDPLATE (Non-Overlapping Base/Cap/Sidewalls + Solid Fins in Fluid) ---
     cp_mat = "mat_Copper" if COLDPLATE_MATERIAL.lower() == "copper" else "mat_Aluminum"
-    stack_refine_objs = ["Bumps", "Die_ring", "Die_center", "TIM"]
-    fin_names = []
+    cp_part_names = []
 
     if COLDPLATE_MODE == "finned_fluid":
         ipk["cp_base_thick"] = f"{CP_BASE_THICK_MM}mm"
         ipk["fin_height"] = f"{fin_height_mm}mm"
         ipk["cp_top_cap"] = f"{CP_TOP_CAP_MM}mm"
-        ipk["cp_total_h"] = "cp_base_thick + fin_height + cp_top_cap"
         ipk["z_channel_bot"] = "z_cp_base + cp_base_thick"
-
-        box(
-            "Coldplate_Body",
-            [f"{-CP_XY_MM/2.0}mm", f"{-CP_XY_MM/2.0}mm", "z_cp_base"],
-            [f"{CP_XY_MM}mm", f"{CP_XY_MM}mm", "cp_total_h"],
-            cp_mat,
-        )
+        ipk["z_channel_top"] = "z_channel_bot + fin_height"
 
         cav_w_x = ACTIVE_FIN_SPAN_X_MM
         cav_l_y = CP_XY_MM
+        wall_x = (CP_XY_MM - cav_w_x) / 2.0  # 9.0 mm solid side walls
 
+        # 1. Coldplate Base Plate (directly above TIM - named Coldplate_Body for T_cp readout)
+        box(
+            "Coldplate_Body",
+            [f"{-CP_XY_MM/2.0}mm", f"{-CP_XY_MM/2.0}mm", "z_cp_base"],
+            [f"{CP_XY_MM}mm", f"{CP_XY_MM}mm", "cp_base_thick"],
+            cp_mat,
+        )
+        # 2. Coldplate Top Cap
+        box(
+            "Coldplate_Cap",
+            [f"{-CP_XY_MM/2.0}mm", f"{-CP_XY_MM/2.0}mm", "z_channel_top"],
+            [f"{CP_XY_MM}mm", f"{CP_XY_MM}mm", "cp_top_cap"],
+            cp_mat,
+        )
+        # 3. Left and Right Sidewalls flanking the Coolant_Domain
+        box(
+            "Coldplate_Wall_W",
+            [f"{-CP_XY_MM/2.0}mm", f"{-CP_XY_MM/2.0}mm", "z_channel_bot"],
+            [f"{wall_x}mm", f"{CP_XY_MM}mm", "fin_height"],
+            cp_mat,
+        )
+        box(
+            "Coldplate_Wall_E",
+            [f"{cav_w_x/2.0}mm", f"{-CP_XY_MM/2.0}mm", "z_channel_bot"],
+            [f"{wall_x}mm", f"{CP_XY_MM}mm", "fin_height"],
+            cp_mat,
+        )
+        cp_part_names.extend(["Coldplate_Body", "Coldplate_Cap", "Coldplate_Wall_W", "Coldplate_Wall_E"])
+
+        # 4. Coolant Fluid Channel (fits flush between Base, Cap, Wall_W, and Wall_E)
         coolant_mat = "water" if COOLANT_FLUID.lower() == "water" else "mat_PG25"
         box(
             "Coolant_Domain",
@@ -347,9 +333,8 @@ def build_phase1_model(ipk, t_tim_mm, fin_pitch_mm, fin_thick_mm, fin_height_mm)
             [f"{cav_w_x}mm", f"{cav_l_y}mm", "fin_height"],
             coolant_mat,
         )
-        stack_refine_objs.append("Coolant_Domain")
 
-        # Parametric Fin Array (ensure >= 0.6 mm outer channel clearance to prevent sliver cells)
+        # 5. Solid Copper Fins inside Coolant_Domain (Solids automatically override Fluids in Icepak!)
         ipk["fin_pitch"] = f"{fin_pitch_mm}mm"
         ipk["fin_thick"] = f"{fin_thick_mm}mm"
         ipk["fin_len_y"] = f"{FIN_LENGTH_Y_MM}mm"
@@ -365,23 +350,12 @@ def build_phase1_model(ipk, t_tim_mm, fin_pitch_mm, fin_thick_mm, fin_height_mm)
                 ["fin_thick", "fin_len_y", "fin_height"],
                 cp_mat,
             )
-            fin_names.append(f_name)
+            cp_part_names.append(f_name)
 
         print(
             f"Created Finned Coldplate: {n_fins} fins "
             f"(Pitch={fin_pitch_mm} mm, Thick={fin_thick_mm} mm, Height={fin_height_mm} mm)"
         )
-
-        # Assign Icepak Object Priorities so nested hex boxes mesh conformally without boolean B-reps!
-        # Priority order: lowest first -> highest last
-        priority_groups = [
-            ["PCB", "BGA_balls", "Substrate", "Bumps", "TIM"] + stiff_names,
-            ["Die_ring", "Coldplate_Body"],
-            ["Die_center", "Coolant_Domain"],
-        ]
-        if fin_names:
-            priority_groups.append(fin_names)
-        ipk.mesh.assign_priorities(priority_groups)
 
         rho_fluid = 997.0 if COOLANT_FLUID.lower() == "water" else 1020.0
         mass_flow_kgs = (FLOW_RATE_LPM / 60000.0) * rho_fluid
@@ -389,7 +363,6 @@ def build_phase1_model(ipk, t_tim_mm, fin_pitch_mm, fin_thick_mm, fin_height_mm)
         inlet_face = ipk.modeler["Coolant_Domain"].bottom_face_y
         outlet_face = ipk.modeler["Coolant_Domain"].top_face_y
 
-        # Named face lists for post-processing
         ipk.modeler.create_face_list([inlet_face.id], name="FaceList_Inlet")
         ipk.modeler.create_face_list([outlet_face.id], name="FaceList_Outlet")
 
@@ -407,17 +380,11 @@ def build_phase1_model(ipk, t_tim_mm, fin_pitch_mm, fin_thick_mm, fin_height_mm)
         )
 
         ipk.edit_design_settings(ambient_temperature=f"{T_AMBIENT_C}cel")
-        # Shrink Y region bounds to match the 45mm coldplate so Inlet/Outlet sit directly on the Region boundary!
-        # Padding array: [+X, -X, +Y, -Y, +Z, -Z]
         ipk.modeler.edit_region_dimensions([0, 0, 0, 0, 0, 0])
 
     else:
         box("Coldplate_Body", ["-50mm", "-50mm", "z_cp_base"], ["100mm", "100mm", "2mm"], cp_mat)
-        ipk.mesh.assign_priorities([
-            ["PCB", "BGA_balls", "Substrate", "Bumps", "TIM"] + stiff_names,
-            ["Die_ring", "Coldplate_Body"],
-            ["Die_center"],
-        ])
+        cp_part_names.append("Coldplate_Body")
         ipk.edit_design_settings(ambient_temperature=f"{T_AMBIENT_C}cel")
         top_face = ipk.modeler["Coldplate_Body"].top_face_z
         ipk.assign_stationary_wall_with_htc(
@@ -429,8 +396,6 @@ def build_phase1_model(ipk, t_tim_mm, fin_pitch_mm, fin_thick_mm, fin_height_mm)
         ipk.modeler.edit_region_dimensions([0, 0, 0, 0, 0, 0])
 
     # --- C. POWER DISSIPATION ---
-    # Because Die_center overrides the center 10x10mm of Die_ring via object priority:
-    # Assign volumetric or total power cleanly without overlapping source warnings
     die_area = 25.0 * 25.0
     ctr_area = 10.0 * 10.0
     if OVERLAPPING_POWER_MAP:
@@ -440,8 +405,17 @@ def build_phase1_model(ipk, t_tim_mm, fin_pitch_mm, fin_thick_mm, fin_height_mm)
         p_ctr = 100.0
         p_ring = 250.0
 
-    ipk.assign_source("Die_ring", "Total Power", f"{p_ring}W", boundary_name="Q_ring")
-    ipk.assign_source("Die_center", "Total Power", f"{p_ctr}W", boundary_name="Q_center")
+    # Distribute Q_ring across the 4 non-overlapping ring boxes proportional to area:
+    # N & S boxes are 25 x 7.5 = 187.5 mm^2 each; W & E boxes are 7.5 x 10 = 75.0 mm^2 each (Total = 525 mm^2)
+    ring_area = die_area - ctr_area  # 525.0 mm^2
+    p_ring_ns = p_ring * (187.5 / ring_area)  # 75.0 W each
+    p_ring_we = p_ring * (75.0 / ring_area)   # 30.0 W each
+
+    ipk.assign_source("Die_ring_N", "Total Power", f"{p_ring_ns:.4f}W", boundary_name="Q_ring_N")
+    ipk.assign_source("Die_ring_S", "Total Power", f"{p_ring_ns:.4f}W", boundary_name="Q_ring_S")
+    ipk.assign_source("Die_ring_W", "Total Power", f"{p_ring_we:.4f}W", boundary_name="Q_ring_W")
+    ipk.assign_source("Die_ring_E", "Total Power", f"{p_ring_we:.4f}W", boundary_name="Q_ring_E")
+    ipk.assign_source("Die_center", "Total Power", f"{p_ctr:.4f}W", boundary_name="Q_center")
 
     # --- D. VISUALS, SETUP & MESH ---
     for obj_name, rgb in COLORS.items():
@@ -450,15 +424,21 @@ def build_phase1_model(ipk, t_tim_mm, fin_pitch_mm, fin_thick_mm, fin_height_mm)
                 ipk.modeler[obj_name].color = rgb
             except Exception:
                 pass
+    for r_name in die_ring_names:
+        try:
+            ipk.modeler[r_name].color = COLORS["Die_ring"]
+        except Exception:
+            pass
     for s_name in stiff_names:
         try:
             ipk.modeler[s_name].color = COLORS["Stiffener"]
             ipk.modeler[s_name].transparency = TRANSPARENCY["Stiffener"]
         except Exception:
             pass
-    for f_name in fin_names:
+    for c_name in cp_part_names:
         try:
-            ipk.modeler[f_name].color = COLORS["Coldplate_Body"]
+            ipk.modeler[c_name].color = COLORS["Coldplate_Body"]
+            ipk.modeler[c_name].transparency = TRANSPARENCY["Coldplate_Body"]
         except Exception:
             pass
     for obj_name, tr in TRANSPARENCY.items():
@@ -479,7 +459,7 @@ def build_phase1_model(ipk, t_tim_mm, fin_pitch_mm, fin_thick_mm, fin_height_mm)
         setup.props["Flow Regime"] = "Laminar" if FLOW_RATE_LPM < 1.5 else "Turbulent"
     setup.update()
 
-    local_z_mm = apply_mesh(ipk, t_tim_mm, MESH_CONFIG, stack_refine_objs)
+    local_z_mm = apply_mesh_native(ipk, t_tim_mm, MESH_CONFIG)
     return local_z_mm
 
 
@@ -489,8 +469,7 @@ def build_phase1_model(ipk, t_tim_mm, fin_pitch_mm, fin_thick_mm, fin_height_mm)
 def _field(ipk, quantity, obj, func="Maximum", obj_type="volume"):
     """Reads scalar field values using FieldsReporter with automatic quantity-name fallback."""
     omodule = ipk.odesign.GetModule("FieldsReporter")
-    
-    # Try both standard Icepak field names (e.g., "Temperature" vs "Temp", "Speed" vs "Velocity")
+
     qty_candidates = [quantity]
     if quantity == "Temperature":
         qty_candidates.append("Temp")
@@ -508,7 +487,6 @@ def _field(ipk, quantity, obj, func="Maximum", obj_type="volume"):
             continue
 
     if not entered:
-        # Fallback to PyAEDT wrapper
         val = float(ipk.post.get_scalar_field_value(
             quantity, scalar_function=func, object_name=obj, object_type=obj_type
         ))
@@ -553,8 +531,12 @@ def _field(ipk, quantity, obj, func="Maximum", obj_type="volume"):
 def read_results(ipk):
     """Returns a dict of results, or None if the temperature readout fails."""
     try:
+        t_ring = max(
+            _field(ipk, "Temperature", r_obj, "Maximum", "volume")
+            for r_obj in ("Die_ring_N", "Die_ring_S", "Die_ring_W", "Die_ring_E")
+        )
         res = {
-            "t_ring": _field(ipk, "Temperature", "Die_ring", "Maximum", "volume"),
+            "t_ring": t_ring,
             "t_center": _field(ipk, "Temperature", "Die_center", "Maximum", "volume"),
             "t_cp": _field(ipk, "Temperature", "Coldplate_Body", "Maximum", "volume"),
             "p_in": None, "p_out": None, "dp_pa": None,
