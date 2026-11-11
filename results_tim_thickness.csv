@@ -1,1 +1,4 @@
 sweep_mode,sweep_val,tim_mm,fin_pitch_mm,fin_thick_mm,fin_height_mm,T_die_max_C,T_coldplate_C,p_in_Pa,p_out_Pa,dP_Pa,v_in_m_s,v_out_m_s,v_max_m_s
+tim_thickness,0.025,0.025,2.0,0.8,4.0,71.494,65.709,521.95,-5.42,527.38,0.1006,0.1084,0.7710
+tim_thickness,0.05,0.05,2.0,0.8,4.0,77.660,65.379,535.24,-5.59,540.84,0.1006,0.1107,0.8176
+tim_thickness,0.1,0.1,2.0,0.8,4.0,89.578,65.930,534.60,-5.63,540.23,0.1006,0.1106,0.8136

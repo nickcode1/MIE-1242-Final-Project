@@ -724,3 +724,45 @@ Project directory: C:\Users\nicho\OneDrive\Documents\Ansoft
 
 [warning] Electronics Desktop Student cannot be closed right now because it is being used by another application, script or extension wizard.
 
+ 
+Ansys Electronics Desktop Student Version 2025.2.4, Build: 2025-11-06 17:01:32
+Location: C:\Program Files\ANSYS Inc\ANSYS Student\v252\AnsysEM\ansysedtsv.exe
+Non Graphical Mode: No Project??
+Starting Batch Run: 7:34:58 PM  Nov 10, 2026
+Running as user : LAPTOP-MFMQJOT0\nicho
+Temp directory: C:\temp
+Project directory: C:\Users\nicho\OneDrive\Documents\Ansoft
+-- Message Window --
+      *Global - Messages
+        [error] Out of memory
+        [error] Out of memory
+        [info] gRPC server started on port 61588 of local host. Only connections from the local host initiated by the same user are permitted. 
+-- Message Window --
+Stopping Batch Run: 7:36:35 PM  Nov 10, 2026
+ 
+Ansys Electronics Desktop Student Version 2025.2.4, Build: 2025-11-06 17:01:32
+Location: C:\Program Files\ANSYS Inc\ANSYS Student\v252\AnsysEM\ansysedtsv.exe
+Non Graphical Mode: No Project??
+Starting Batch Run: 7:40:27 PM  Nov 10, 2026
+Running as user : LAPTOP-MFMQJOT0\nicho
+Temp directory: C:\temp
+Project directory: C:\Users\nicho\OneDrive\Documents\Ansoft
+The project 'MIE1242_Phase1_Coldplate' has been edited and/or solved. Do you want to save the changes?
+-- Message Window --
+      *Global - Messages
+        [info] gRPC server started on port 61052 of local host. Only connections from the local host initiated by the same user are permitted. 
+        [info] The project 'MIE1242_Phase1_Coldplate' has been edited and/or solved. Do you want to save the changes?
+      MIE1242_Phase1_Coldplate (C:/Temp/MIE1242_FinalProject_Phase1/)
+        Phase1_tim_thickness_0p025 (SteadyState)
+          [info] Validation warning: Skipped entity checks. (07:41:20 PM  Nov 10, 2026)
+          [info] Normal completion of simulation on server: Local Machine. (07:42:26 PM  Nov 10, 2026)
+-- Message Window --
+Stopping Batch Run: 7:44:04 PM  Nov 10, 2026
+ 
+Ansys Electronics Desktop Student Version 2025.2.4, Build: 2025-11-06 17:01:32
+Location: C:\Program Files\ANSYS Inc\ANSYS Student\v252\AnsysEM\ansysedtsv.exe
+Non Graphical Mode: No Project??
+Starting Batch Run: 7:44:10 PM  Nov 10, 2026
+Running as user : LAPTOP-MFMQJOT0\nicho
+Temp directory: C:\temp
+Project directory: C:\Users\nicho\OneDrive\Documents\Ansoft
