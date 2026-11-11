@@ -273,6 +273,10 @@ def build_phase1_model(ipk, t_tim_mm, fin_pitch_mm, fin_thick_mm, fin_height_mm)
     setup.update()
 
     # Complete Native EditGlobalMeshRegion Call (including mandatory keys and Objects:=["Region"])
+    # Multi-level meshing (MLM) is OFF: with it on, the 0.025 mm TIM is either
+    # left unmeshed or the count exceeds the 512K-cell Student limit (1.7M+).
+    # With it off the mesher puts grid lines on every object face, so the thin
+    # layers are resolved: ~137K cells for the baseline geometry.
     omesh = ipk.odesign.GetModule("MeshRegion")
     omesh.EditGlobalMeshRegion(
         [
@@ -282,12 +286,12 @@ def build_phase1_model(ipk, t_tim_mm, fin_pitch_mm, fin_thick_mm, fin_height_mm)
             "ComputeGap:=", True,
             "MaxElementSizeX:=", "2.0mm",
             "MaxElementSizeY:=", "2.0mm",
-            "MaxElementSizeZ:=", "0.5mm",
-            "MinElementsInGap:=", "3",
+            "MaxElementSizeZ:=", "0.25mm",
+            "MinElementsInGap:=", "4",
             "MinElementsOnEdge:=", "2",
             "MaxSizeRatio:=", "2",
             "NoOGrids:=", False,
-            "EnableMLM:=", True,
+            "EnableMLM:=", False,
             "EnforeMLMType:=", "3D",
             "MaxLevels:=", "2",
             "BufferLayers:=", "1",
@@ -300,35 +304,40 @@ def build_phase1_model(ipk, t_tim_mm, fin_pitch_mm, fin_thick_mm, fin_height_mm)
         ]
     )
 
-    # Light local refinement on the thin TIM, Die, and Bumps. Kept low because
-    # the Student licence caps the Icepak mesh at 512K elements; the mesher
-    # already places grid lines on the faces of these layers.
-    omesh.AssignMeshOperation(
-        [
-            "NAME:Mesh_ThinLayers",
-            "Enable:=", True,
-            "MaxLevel:=", "1",
-            "MinLevel:=", "0",
-            "Objects:=", ["TIM", "Die", "Bumps", "Die_hotspot"],
-        ]
-    )
-
 
 # ----------------------------------------------------------------------------
 # POST-PROCESSING
 # ----------------------------------------------------------------------------
 def _field(ipk, quantity, obj, func="Maximum", obj_type="volume"):
-    for q_try in ([quantity, "Temp"] if quantity == "Temperature" else [quantity]):
+    """Evaluate a scalar field quantity with the fields calculator.
+
+    Uses the named expression directly: PyAEDT's get_scalar_field_value enters
+    "Speed" as a raw quantity, which the calculator cannot reduce to a scalar.
+    Temperature is returned in Celsius, pressure in Pa, speed in m/s.
+    """
+    fr = ipk.ofieldsreporter
+    try:
+        solution = ipk.existing_analysis_sweeps[0]
+        fr.CalcStack("clear")
+        fr.CopyNamedExprToStack(quantity)
+        if obj_type == "volume":
+            fr.EnterVol(obj)
+        else:
+            fr.EnterSurf(obj)
+        fr.CalcOp(func)
+        fr.ClcEval(solution, [], "Fields")
+        val = fr.GetTopEntryValue(solution, [])
+        if not isinstance(val, (str, float, int)):
+            val = list(val)[0]
+        return float(val)
+    except Exception as err:
+        print(f"  (Could not read {func} {quantity} on {obj}: {err})")
+        return None
+    finally:
         try:
-            val = ipk.post.get_scalar_field_value(
-                q_try, scalar_function=func, object_name=obj, object_type=obj_type
-            )
-            if val is not None:
-                val = float(val)
-                return val - 273.15 if (quantity == "Temperature" and val > 200.0) else val
+            fr.CalcStack("clear")
         except Exception:
             pass
-    return None
 
 
 def read_results(ipk):

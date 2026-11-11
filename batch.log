@@ -636,3 +636,23 @@ Starting Batch Run: 6:29:34 PM  Nov 10, 2026
 Running as user : LAPTOP-MFMQJOT0\nicho
 Temp directory: C:\temp
 Project directory: C:\Users\nicho\OneDrive\Documents\Ansoft
+The project 'MIE1242_Phase1_Coldplate' has been edited and/or solved. Do you want to save the changes?
+-- Message Window --
+      *Global - Messages
+        [info] gRPC server started on port 63607 of local host. Only connections from the local host initiated by the same user are permitted. 
+        [info] The project 'MIE1242_Phase1_Coldplate' has been edited and/or solved. Do you want to save the changes?
+      MIE1242_Phase1_Coldplate (C:/Temp/MIE1242_FinalProject_Phase1/)
+        Phase1_tim_thickness_0p025 (SteadyState)
+          [info] Validation warning: Skipped entity checks. (06:29:56 PM  Nov 10, 2026)
+          [error] Setup1: Mesh size (3236799 volume elements) is greater than the limit for simulation in Ansys Electronics Desktop Student. (06:31:13 PM  Nov 10, 2026)
+          [error] Simulation completed with execution error on server: Local Machine. (06:31:13 PM  Nov 10, 2026)
+          [error] Script macro error: Simulation for MIE1242_Phase1_Coldplate : Phase1_tim_thickness_0p025 : Setup1 has failed with execution error.  (06:31:13 PM  Nov 10, 2026)
+-- Message Window --
+Stopping Batch Run: 6:34:32 PM  Nov 10, 2026
+025.2.4, Build: 2025-11-06 17:01:32
+Location: C:\Program Files\ANSYS Inc\ANSYS Student\v252\AnsysEM\ansysedtsv.exe
+Non Graphical Mode: No Project??
+Starting Batch Run: 6:34:31 PM  Nov 10, 2026
+Running as user : LAPTOP-MFMQJOT0\nicho
+Temp directory: C:\temp
+Project directory: C:\Users\nicho\OneDrive\Documents\Ansoft
