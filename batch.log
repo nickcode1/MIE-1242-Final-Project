@@ -656,3 +656,46 @@ Starting Batch Run: 6:34:31 PM  Nov 10, 2026
 Running as user : LAPTOP-MFMQJOT0\nicho
 Temp directory: C:\temp
 Project directory: C:\Users\nicho\OneDrive\Documents\Ansoft
+The project 'MIE1242_Phase1_Coldplate' has been edited and/or solved. Do you want to save the changes?
+-- Message Window --
+      *Global - Messages
+        [info] gRPC server started on port 49736 of local host. Only connections from the local host initiated by the same user are permitted. 
+        [info] The project 'MIE1242_Phase1_Coldplate' has been edited and/or solved. Do you want to save the changes?
+      MIE1242_Phase1_Coldplate (C:/Temp/MIE1242_FinalProject_Phase1/)
+        Phase1_tim_thickness_0p025 (SteadyState)
+          [info] Validation warning: Skipped entity checks. (06:34:53 PM  Nov 10, 2026)
+          [warning] 'TIM': Object does not have mesh. (06:35:03 PM  Nov 10, 2026)
+          [info] Normal completion of simulation on server: Local Machine. (06:36:30 PM  Nov 10, 2026)
+          [error] Script macro error: Abnormal script termination. (06:36:30 PM  Nov 10, 2026)
+          [warning] 'TIM': Object does not have mesh. (06:36:33 PM  Nov 10, 2026)
+          [error] Script macro error: Abnormal script termination. (06:36:33 PM  Nov 10, 2026)
+          [error] Script macro error: Abnormal script termination. (06:36:33 PM  Nov 10, 2026)
+          [error] Script macro error: Abnormal script termination. (06:36:34 PM  Nov 10, 2026)
+          [error] Script macro error: The stack contents are incompatible with the current operation. (06:36:35 PM  Nov 10, 2026)
+          [error] Script macro error: The stack contents are incompatible with the current operation. (06:36:35 PM  Nov 10, 2026)
+          [error] Script macro error: The stack contents are incompatible with the current operation. (06:36:35 PM  Nov 10, 2026)
+          [error] Script macro error: The stack contents are incompatible with the current operation. (06:51:41 PM  Nov 10, 2026)
+          [error] Script macro error: Abnormal script termination. (06:51:42 PM  Nov 10, 2026)
+          [error] Script macro error: The stack contents are incompatible with the current operation. (06:51:42 PM  Nov 10, 2026)
+          [error] Script macro error: The stack contents are incompatible with the current operation. (06:51:42 PM  Nov 10, 2026)
+          [error] Script macro error: Cannot find the named expression (06:51:42 PM  Nov 10, 2026)
+          [error] Script macro error: Abnormal script termination. (06:51:42 PM  Nov 10, 2026)
+          [error] Script macro error: Abnormal script termination. (06:51:43 PM  Nov 10, 2026)
+          [error] Script macro error: Abnormal script termination. (06:51:43 PM  Nov 10, 2026)
+          [error] Script macro error: Cannot find the named expression (06:51:43 PM  Nov 10, 2026)
+          [error] Script macro error: Abnormal script termination. (06:51:43 PM  Nov 10, 2026)
+          [error] Script macro error: Abnormal script termination. (06:51:43 PM  Nov 10, 2026)
+          [error] Script macro error: Abnormal script termination. (06:51:44 PM  Nov 10, 2026)
+          [error] Script macro error: Cannot find the named expression (06:51:44 PM  Nov 10, 2026)
+          [error] Script macro error: Error in performing operation. (06:51:44 PM  Nov 10, 2026)
+          [error] Script macro error: Error in performing operation. (06:51:45 PM  Nov 10, 2026)
+-- Message Window --
+Stopping Batch Run: 7:05:25 PM  Nov 10, 2026
+ 
+Ansys Electronics Desktop Student Version 2025.2.4, Build: 2025-11-06 17:01:32
+Location: C:\Program Files\ANSYS Inc\ANSYS Student\v252\AnsysEM\ansysedtsv.exe
+Non Graphical Mode: No Project??
+Starting Batch Run: 7:05:30 PM  Nov 10, 2026
+Running as user : LAPTOP-MFMQJOT0\nicho
+Temp directory: C:\temp
+Project directory: C:\Users\nicho\OneDrive\Documents\Ansoft

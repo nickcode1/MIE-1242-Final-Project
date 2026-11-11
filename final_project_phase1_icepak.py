@@ -33,7 +33,7 @@ DESIGN_NAME = "Phase1"
 TARGET_SWEEP = "tim_thickness"
 
 SWEEP_RANGES = {
-    "tim_thickness": [0.025],
+    "tim_thickness": [0.025, 0.05, 0.1, 0.2],
 }
 
 # ----------------------------------------------------------------------------
